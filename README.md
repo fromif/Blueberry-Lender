@@ -1,5 +1,3 @@
-[![CircleCI](https://circleci.com/gh/ibdotxyz/compound-protocol/tree/eth.svg?style=svg)](https://circleci.com/gh/ibdotxyz/compound-protocol/tree/eth)
-
 Iron Bank
 =================
 Iron Bank is a blockchain agnostic, decentralized peer to peer lending platform based on a fork of [Compound Finance](https://compound.finance).

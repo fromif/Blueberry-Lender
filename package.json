@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "eth-saddle": "^0.1.21",
+    "package-lock.json": "^1.0.0",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.17"
   },
