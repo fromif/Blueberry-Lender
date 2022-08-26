@@ -1,6 +1,6 @@
 pragma solidity ^0.5.16;
 
-import "../CToken.sol";
+import "../BToken.sol";
 import "../ErrorReporter.sol";
 import "../Exponential.sol";
 import "../PriceOracle/PriceOracle.sol";
@@ -15,19 +15,19 @@ import "../Governance/Comp.sol";
  */
 contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, ComptrollerErrorReporter, Exponential {
     /// @notice Emitted when an admin supports a market
-    event MarketListed(CToken cToken);
+    event MarketListed(BToken bToken);
 
     /// @notice Emitted when an account enters a market
-    event MarketEntered(CToken cToken, address account);
+    event MarketEntered(BToken bToken, address account);
 
     /// @notice Emitted when an account exits a market
-    event MarketExited(CToken cToken, address account);
+    event MarketExited(BToken bToken, address account);
 
     /// @notice Emitted when close factor is changed by admin
     event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa);
 
     /// @notice Emitted when a collateral factor is changed by admin
-    event NewCollateralFactor(CToken cToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa);
+    event NewCollateralFactor(BToken bToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa);
 
     /// @notice Emitted when liquidation incentive is changed by admin
     event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa);
@@ -42,14 +42,14 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     event ActionPaused(string action, bool pauseState);
 
     /// @notice Emitted when an action is paused on a market
-    event ActionPaused(CToken cToken, string action, bool pauseState);
+    event ActionPaused(BToken bToken, string action, bool pauseState);
 
     /// @notice Emitted when a new COMP speed is calculated for a market
-    event CompSpeedUpdated(CToken indexed cToken, uint256 newSpeed);
+    event CompSpeedUpdated(BToken indexed bToken, uint256 newSpeed);
 
     /// @notice Emitted when COMP is distributed to a supplier
     event DistributedSupplierComp(
-        CToken indexed cToken,
+        BToken indexed bToken,
         address indexed supplier,
         uint256 compDelta,
         uint256 compSupplyIndex
@@ -57,20 +57,20 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /// @notice Emitted when COMP is distributed to a borrower
     event DistributedBorrowerComp(
-        CToken indexed cToken,
+        BToken indexed bToken,
         address indexed borrower,
         uint256 compDelta,
         uint256 compBorrowIndex
     );
 
-    /// @notice Emitted when borrow cap for a cToken is changed
-    event NewBorrowCap(CToken indexed cToken, uint256 newBorrowCap);
+    /// @notice Emitted when borrow cap for a bToken is changed
+    event NewBorrowCap(BToken indexed bToken, uint256 newBorrowCap);
 
     /// @notice Emitted when borrow cap guardian is changed
     event NewBorrowCapGuardian(address oldBorrowCapGuardian, address newBorrowCapGuardian);
 
-    /// @notice Emitted when supply cap for a cToken is changed
-    event NewSupplyCap(CToken indexed cToken, uint256 newSupplyCap);
+    /// @notice Emitted when supply cap for a bToken is changed
+    event NewSupplyCap(BToken indexed bToken, uint256 newSupplyCap);
 
     /// @notice Emitted when supply cap guardian is changed
     event NewSupplyCapGuardian(address oldSupplyCapGuardian, address newSupplyCapGuardian);
@@ -98,8 +98,8 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
      * @param account The address of the account to pull assets for
      * @return A dynamic list with the assets the account has entered
      */
-    function getAssetsIn(address account) external view returns (CToken[] memory) {
-        CToken[] memory assetsIn = accountAssets[account];
+    function getAssetsIn(address account) external view returns (BToken[] memory) {
+        BToken[] memory assetsIn = accountAssets[account];
 
         return assetsIn;
     }
@@ -107,26 +107,26 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     /**
      * @notice Returns whether the given account is entered in the given asset
      * @param account The address of the account to check
-     * @param cToken The cToken to check
+     * @param bToken The bToken to check
      * @return True if the account is in the asset, otherwise false.
      */
-    function checkMembership(address account, CToken cToken) external view returns (bool) {
-        return markets[address(cToken)].accountMembership[account];
+    function checkMembership(address account, BToken bToken) external view returns (bool) {
+        return markets[address(bToken)].accountMembership[account];
     }
 
     /**
      * @notice Add assets to be included in account liquidity calculation
-     * @param cTokens The list of addresses of the cToken markets to be enabled
+     * @param bTokens The list of addresses of the bToken markets to be enabled
      * @return Success indicator for whether each corresponding market was entered
      */
-    function enterMarkets(address[] memory cTokens) public returns (uint256[] memory) {
-        uint256 len = cTokens.length;
+    function enterMarkets(address[] memory bTokens) public returns (uint256[] memory) {
+        uint256 len = bTokens.length;
 
         uint256[] memory results = new uint256[](len);
         for (uint256 i = 0; i < len; i++) {
-            CToken cToken = CToken(cTokens[i]);
+            BToken bToken = BToken(bTokens[i]);
 
-            results[i] = uint256(addToMarketInternal(cToken, msg.sender));
+            results[i] = uint256(addToMarketInternal(bToken, msg.sender));
         }
 
         return results;
@@ -134,12 +134,12 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Add the market to the borrower's "assets in" for liquidity calculations
-     * @param cToken The market to enter
+     * @param bToken The market to enter
      * @param borrower The address of the account to modify
      * @return Success indicator for whether the market was entered
      */
-    function addToMarketInternal(CToken cToken, address borrower) internal returns (Error) {
-        Market storage marketToJoin = markets[address(cToken)];
+    function addToMarketInternal(BToken bToken, address borrower) internal returns (Error) {
+        Market storage marketToJoin = markets[address(bToken)];
 
         if (!marketToJoin.isListed) {
             // market is not listed, cannot join
@@ -157,9 +157,9 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         //  that is, only when we need to perform liquidity checks
         //  and not whenever we want to check if an account is in a particular market
         marketToJoin.accountMembership[borrower] = true;
-        accountAssets[borrower].push(cToken);
+        accountAssets[borrower].push(bToken);
 
-        emit MarketEntered(cToken, borrower);
+        emit MarketEntered(bToken, borrower);
 
         return Error.NO_ERROR;
     }
@@ -168,13 +168,13 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
      * @notice Removes asset from sender's account liquidity calculation
      * @dev Sender must not have an outstanding borrow balance in the asset,
      *  or be providing necessary collateral for an outstanding borrow.
-     * @param cTokenAddress The address of the asset to be removed
+     * @param bTokenAddress The address of the asset to be removed
      * @return Whether or not the account successfully exited the market
      */
-    function exitMarket(address cTokenAddress) external returns (uint256) {
-        CToken cToken = CToken(cTokenAddress);
-        /* Get sender tokensHeld and amountOwed underlying from the cToken */
-        (uint256 oErr, uint256 tokensHeld, uint256 amountOwed, ) = cToken.getAccountSnapshot(msg.sender);
+    function exitMarket(address bTokenAddress) external returns (uint256) {
+        BToken bToken = BToken(bTokenAddress);
+        /* Get sender tokensHeld and amountOwed underlying from the bToken */
+        (uint256 oErr, uint256 tokensHeld, uint256 amountOwed, ) = bToken.getAccountSnapshot(msg.sender);
         require(oErr == 0, "exitMarket: getAccountSnapshot failed"); // semi-opaque error code
 
         /* Fail if the sender has a borrow balance */
@@ -183,28 +183,28 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         }
 
         /* Fail if the sender is not permitted to redeem all of their tokens */
-        uint256 allowed = redeemAllowedInternal(cTokenAddress, msg.sender, tokensHeld);
+        uint256 allowed = redeemAllowedInternal(bTokenAddress, msg.sender, tokensHeld);
         if (allowed != 0) {
             return failOpaque(Error.REJECTION, FailureInfo.EXIT_MARKET_REJECTION, allowed);
         }
 
-        Market storage marketToExit = markets[address(cToken)];
+        Market storage marketToExit = markets[address(bToken)];
 
         /* Return true if the sender is not already ‘in’ the market */
         if (!marketToExit.accountMembership[msg.sender]) {
             return uint256(Error.NO_ERROR);
         }
 
-        /* Set cToken account membership to false */
+        /* Set bToken account membership to false */
         delete marketToExit.accountMembership[msg.sender];
 
-        /* Delete cToken from the account’s list of assets */
+        /* Delete bToken from the account’s list of assets */
         // load into memory for faster iteration
-        CToken[] memory userAssetList = accountAssets[msg.sender];
+        BToken[] memory userAssetList = accountAssets[msg.sender];
         uint256 len = userAssetList.length;
         uint256 assetIndex = len;
         for (uint256 i = 0; i < len; i++) {
-            if (userAssetList[i] == cToken) {
+            if (userAssetList[i] == bToken) {
                 assetIndex = i;
                 break;
             }
@@ -214,11 +214,11 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         assert(assetIndex < len);
 
         // copy last item in list to location of item to be removed, reduce length by 1
-        CToken[] storage storedList = accountAssets[msg.sender];
+        BToken[] storage storedList = accountAssets[msg.sender];
         storedList[assetIndex] = storedList[storedList.length - 1];
         storedList.length--;
 
-        emit MarketExited(cToken, msg.sender);
+        emit MarketExited(bToken, msg.sender);
 
         return uint256(Error.NO_ERROR);
     }
@@ -227,32 +227,32 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the account should be allowed to mint tokens in the given market
-     * @param cToken The market to verify the mint against
+     * @param bToken The market to verify the mint against
      * @param minter The account which would get the minted tokens
      * @param mintAmount The amount of underlying being supplied to the market in exchange for tokens
      * @return 0 if the mint is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function mintAllowed(
-        address cToken,
+        address bToken,
         address minter,
         uint256 mintAmount
     ) external returns (uint256) {
         // Pausing is a very serious situation - we revert to sound the alarms
-        require(!mintGuardianPaused[cToken], "mint is paused");
+        require(!mintGuardianPaused[bToken], "mint is paused");
 
         // Shh - currently unused
         minter;
 
-        if (!markets[cToken].isListed) {
+        if (!markets[bToken].isListed) {
             return uint256(Error.MARKET_NOT_LISTED);
         }
 
-        uint256 supplyCap = supplyCaps[cToken];
+        uint256 supplyCap = supplyCaps[bToken];
         // Supply cap of 0 corresponds to unlimited supplying
         if (supplyCap != 0) {
-            uint256 totalCash = CToken(cToken).getCash();
-            uint256 totalBorrows = CToken(cToken).totalBorrows();
-            uint256 totalReserves = CToken(cToken).totalReserves();
+            uint256 totalCash = BToken(bToken).getCash();
+            uint256 totalBorrows = BToken(bToken).totalBorrows();
+            uint256 totalReserves = BToken(bToken).totalReserves();
             // totalSupplies = totalCash + totalBorrows - totalReserves
             (MathError mathErr, uint256 totalSupplies) = addThenSubUInt(totalCash, totalBorrows, totalReserves);
             require(mathErr == MathError.NO_ERROR, "totalSupplies failed");
@@ -262,27 +262,27 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         }
 
         // Keep the flywheel moving
-        updateCompSupplyIndex(cToken);
-        distributeSupplierComp(cToken, minter, false);
+        updateCompSupplyIndex(bToken);
+        distributeSupplierComp(bToken, minter, false);
 
         return uint256(Error.NO_ERROR);
     }
 
     /**
      * @notice Validates mint and reverts on rejection. May emit logs.
-     * @param cToken Asset being minted
+     * @param bToken Asset being minted
      * @param minter The address minting the tokens
      * @param actualMintAmount The amount of the underlying asset being minted
      * @param mintTokens The number of tokens being minted
      */
     function mintVerify(
-        address cToken,
+        address bToken,
         address minter,
         uint256 actualMintAmount,
         uint256 mintTokens
     ) external {
         // Shh - currently unused
-        cToken;
+        bToken;
         minter;
         actualMintAmount;
         mintTokens;
@@ -295,46 +295,46 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the account should be allowed to redeem tokens in the given market
-     * @param cToken The market to verify the redeem against
+     * @param bToken The market to verify the redeem against
      * @param redeemer The account which would redeem the tokens
-     * @param redeemTokens The number of cTokens to exchange for the underlying asset in the market
+     * @param redeemTokens The number of bTokens to exchange for the underlying asset in the market
      * @return 0 if the redeem is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function redeemAllowed(
-        address cToken,
+        address bToken,
         address redeemer,
         uint256 redeemTokens
     ) external returns (uint256) {
-        uint256 allowed = redeemAllowedInternal(cToken, redeemer, redeemTokens);
+        uint256 allowed = redeemAllowedInternal(bToken, redeemer, redeemTokens);
         if (allowed != uint256(Error.NO_ERROR)) {
             return allowed;
         }
 
         // Keep the flywheel moving
-        updateCompSupplyIndex(cToken);
-        distributeSupplierComp(cToken, redeemer, false);
+        updateCompSupplyIndex(bToken);
+        distributeSupplierComp(bToken, redeemer, false);
 
         return uint256(Error.NO_ERROR);
     }
 
     function redeemAllowedInternal(
-        address cToken,
+        address bToken,
         address redeemer,
         uint256 redeemTokens
     ) internal view returns (uint256) {
-        if (!markets[cToken].isListed) {
+        if (!markets[bToken].isListed) {
             return uint256(Error.MARKET_NOT_LISTED);
         }
 
         /* If the redeemer is not 'in' the market, then we can bypass the liquidity check */
-        if (!markets[cToken].accountMembership[redeemer]) {
+        if (!markets[bToken].accountMembership[redeemer]) {
             return uint256(Error.NO_ERROR);
         }
 
         /* Otherwise, perform a hypothetical liquidity check to guard against shortfall */
         (Error err, , uint256 shortfall) = getHypotheticalAccountLiquidityInternal(
             redeemer,
-            CToken(cToken),
+            BToken(bToken),
             redeemTokens,
             0
         );
@@ -350,19 +350,19 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Validates redeem and reverts on rejection. May emit logs.
-     * @param cToken Asset being redeemed
+     * @param bToken Asset being redeemed
      * @param redeemer The address redeeming the tokens
      * @param redeemAmount The amount of the underlying asset being redeemed
      * @param redeemTokens The number of tokens being redeemed
      */
     function redeemVerify(
-        address cToken,
+        address bToken,
         address redeemer,
         uint256 redeemAmount,
         uint256 redeemTokens
     ) external {
         // Shh - currently unused
-        cToken;
+        bToken;
         redeemer;
 
         // Require tokens is zero or amount is also zero
@@ -373,48 +373,48 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
-     * @param cToken The market to verify the borrow against
+     * @param bToken The market to verify the borrow against
      * @param borrower The account which would borrow the asset
      * @param borrowAmount The amount of underlying the account would borrow
      * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function borrowAllowed(
-        address cToken,
+        address bToken,
         address borrower,
         uint256 borrowAmount
     ) external returns (uint256) {
         // Pausing is a very serious situation - we revert to sound the alarms
-        require(!borrowGuardianPaused[cToken], "borrow is paused");
+        require(!borrowGuardianPaused[bToken], "borrow is paused");
 
-        if (!markets[cToken].isListed) {
+        if (!markets[bToken].isListed) {
             return uint256(Error.MARKET_NOT_LISTED);
         }
 
-        if (!markets[cToken].accountMembership[borrower]) {
-            // only cTokens may call borrowAllowed if borrower not in market
-            require(msg.sender == cToken, "sender must be cToken");
+        if (!markets[bToken].accountMembership[borrower]) {
+            // only bTokens may call borrowAllowed if borrower not in market
+            require(msg.sender == bToken, "sender must be bToken");
 
             // attempt to add borrower to the market
-            Error err = addToMarketInternal(CToken(cToken), borrower);
+            Error err = addToMarketInternal(BToken(bToken), borrower);
             if (err != Error.NO_ERROR) {
                 return uint256(err);
             }
 
             // it should be impossible to break the important invariant
-            assert(markets[cToken].accountMembership[borrower]);
+            assert(markets[bToken].accountMembership[borrower]);
         }
 
-        uint256 borrowCap = borrowCaps[cToken];
+        uint256 borrowCap = borrowCaps[bToken];
         // Borrow cap of 0 corresponds to unlimited borrowing
         if (borrowCap != 0) {
-            uint256 totalBorrows = CToken(cToken).totalBorrows();
+            uint256 totalBorrows = BToken(bToken).totalBorrows();
             uint256 nextTotalBorrows = add_(totalBorrows, borrowAmount);
             require(nextTotalBorrows < borrowCap, "market borrow cap reached");
         }
 
         (Error err, , uint256 shortfall) = getHypotheticalAccountLiquidityInternal(
             borrower,
-            CToken(cToken),
+            BToken(bToken),
             0,
             borrowAmount
         );
@@ -426,26 +426,26 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         }
 
         // Keep the flywheel moving
-        Exp memory borrowIndex = Exp({mantissa: CToken(cToken).borrowIndex()});
-        updateCompBorrowIndex(cToken, borrowIndex);
-        distributeBorrowerComp(cToken, borrower, borrowIndex, false);
+        Exp memory borrowIndex = Exp({mantissa: BToken(bToken).borrowIndex()});
+        updateCompBorrowIndex(bToken, borrowIndex);
+        distributeBorrowerComp(bToken, borrower, borrowIndex, false);
 
         return uint256(Error.NO_ERROR);
     }
 
     /**
      * @notice Validates borrow and reverts on rejection. May emit logs.
-     * @param cToken Asset whose underlying is being borrowed
+     * @param bToken Asset whose underlying is being borrowed
      * @param borrower The address borrowing the underlying
      * @param borrowAmount The amount of the underlying asset requested to borrow
      */
     function borrowVerify(
-        address cToken,
+        address bToken,
         address borrower,
         uint256 borrowAmount
     ) external {
         // Shh - currently unused
-        cToken;
+        bToken;
         borrower;
         borrowAmount;
 
@@ -457,14 +457,14 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the account should be allowed to repay a borrow in the given market
-     * @param cToken The market to verify the repay against
+     * @param bToken The market to verify the repay against
      * @param payer The account which would repay the asset
      * @param borrower The account which would borrowed the asset
      * @param repayAmount The amount of the underlying asset the account would repay
      * @return 0 if the repay is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function repayBorrowAllowed(
-        address cToken,
+        address bToken,
         address payer,
         address borrower,
         uint256 repayAmount
@@ -474,34 +474,34 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         borrower;
         repayAmount;
 
-        if (!markets[cToken].isListed) {
+        if (!markets[bToken].isListed) {
             return uint256(Error.MARKET_NOT_LISTED);
         }
 
         // Keep the flywheel moving
-        Exp memory borrowIndex = Exp({mantissa: CToken(cToken).borrowIndex()});
-        updateCompBorrowIndex(cToken, borrowIndex);
-        distributeBorrowerComp(cToken, borrower, borrowIndex, false);
+        Exp memory borrowIndex = Exp({mantissa: BToken(bToken).borrowIndex()});
+        updateCompBorrowIndex(bToken, borrowIndex);
+        distributeBorrowerComp(bToken, borrower, borrowIndex, false);
 
         return uint256(Error.NO_ERROR);
     }
 
     /**
      * @notice Validates repayBorrow and reverts on rejection. May emit logs.
-     * @param cToken Asset being repaid
+     * @param bToken Asset being repaid
      * @param payer The address repaying the borrow
      * @param borrower The address of the borrower
      * @param actualRepayAmount The amount of underlying being repaid
      */
     function repayBorrowVerify(
-        address cToken,
+        address bToken,
         address payer,
         address borrower,
         uint256 actualRepayAmount,
         uint256 borrowerIndex
     ) external {
         // Shh - currently unused
-        cToken;
+        bToken;
         payer;
         borrower;
         actualRepayAmount;
@@ -515,15 +515,15 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the liquidation should be allowed to occur
-     * @param cTokenBorrowed Asset which was borrowed by the borrower
-     * @param cTokenCollateral Asset which was used as collateral and will be seized
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param repayAmount The amount of underlying being repaid
      */
     function liquidateBorrowAllowed(
-        address cTokenBorrowed,
-        address cTokenCollateral,
+        address bTokenBorrowed,
+        address bTokenCollateral,
         address liquidator,
         address borrower,
         uint256 repayAmount
@@ -531,7 +531,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         // Shh - currently unused
         liquidator;
 
-        if (!markets[cTokenBorrowed].isListed || !markets[cTokenCollateral].isListed) {
+        if (!markets[bTokenBorrowed].isListed || !markets[bTokenCollateral].isListed) {
             return uint256(Error.MARKET_NOT_LISTED);
         }
 
@@ -545,7 +545,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         }
 
         /* The liquidator may not repay more than what is allowed by the closeFactor */
-        uint256 borrowBalance = CToken(cTokenBorrowed).borrowBalanceStored(borrower);
+        uint256 borrowBalance = BToken(bTokenBorrowed).borrowBalanceStored(borrower);
         uint256 maxClose = mul_ScalarTruncate(Exp({mantissa: closeFactorMantissa}), borrowBalance);
         if (repayAmount > maxClose) {
             return uint256(Error.TOO_MUCH_REPAY);
@@ -556,23 +556,23 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Validates liquidateBorrow and reverts on rejection. May emit logs.
-     * @param cTokenBorrowed Asset which was borrowed by the borrower
-     * @param cTokenCollateral Asset which was used as collateral and will be seized
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param actualRepayAmount The amount of underlying being repaid
      */
     function liquidateBorrowVerify(
-        address cTokenBorrowed,
-        address cTokenCollateral,
+        address bTokenBorrowed,
+        address bTokenCollateral,
         address liquidator,
         address borrower,
         uint256 actualRepayAmount,
         uint256 seizeTokens
     ) external {
         // Shh - currently unused
-        cTokenBorrowed;
-        cTokenCollateral;
+        bTokenBorrowed;
+        bTokenCollateral;
         liquidator;
         borrower;
         actualRepayAmount;
@@ -586,15 +586,15 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the seizing of assets should be allowed to occur
-     * @param cTokenCollateral Asset which was used as collateral and will be seized
-     * @param cTokenBorrowed Asset which was borrowed by the borrower
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param seizeTokens The number of collateral tokens to seize
      */
     function seizeAllowed(
-        address cTokenCollateral,
-        address cTokenBorrowed,
+        address bTokenCollateral,
+        address bTokenBorrowed,
         address liquidator,
         address borrower,
         uint256 seizeTokens
@@ -605,40 +605,40 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         // Shh - currently unused
         seizeTokens;
 
-        if (!markets[cTokenCollateral].isListed || !markets[cTokenBorrowed].isListed) {
+        if (!markets[bTokenCollateral].isListed || !markets[bTokenBorrowed].isListed) {
             return uint256(Error.MARKET_NOT_LISTED);
         }
 
-        if (CToken(cTokenCollateral).comptroller() != CToken(cTokenBorrowed).comptroller()) {
+        if (BToken(bTokenCollateral).comptroller() != BToken(bTokenBorrowed).comptroller()) {
             return uint256(Error.COMPTROLLER_MISMATCH);
         }
 
         // Keep the flywheel moving
-        updateCompSupplyIndex(cTokenCollateral);
-        distributeSupplierComp(cTokenCollateral, borrower, false);
-        distributeSupplierComp(cTokenCollateral, liquidator, false);
+        updateCompSupplyIndex(bTokenCollateral);
+        distributeSupplierComp(bTokenCollateral, borrower, false);
+        distributeSupplierComp(bTokenCollateral, liquidator, false);
 
         return uint256(Error.NO_ERROR);
     }
 
     /**
      * @notice Validates seize and reverts on rejection. May emit logs.
-     * @param cTokenCollateral Asset which was used as collateral and will be seized
-     * @param cTokenBorrowed Asset which was borrowed by the borrower
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param seizeTokens The number of collateral tokens to seize
      */
     function seizeVerify(
-        address cTokenCollateral,
-        address cTokenBorrowed,
+        address bTokenCollateral,
+        address bTokenBorrowed,
         address liquidator,
         address borrower,
         uint256 seizeTokens
     ) external {
         // Shh - currently unused
-        cTokenCollateral;
-        cTokenBorrowed;
+        bTokenCollateral;
+        bTokenBorrowed;
         liquidator;
         borrower;
         seizeTokens;
@@ -651,14 +651,14 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
-     * @param cToken The market to verify the transfer against
+     * @param bToken The market to verify the transfer against
      * @param src The account which sources the tokens
      * @param dst The account which receives the tokens
-     * @param transferTokens The number of cTokens to transfer
+     * @param transferTokens The number of bTokens to transfer
      * @return 0 if the transfer is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function transferAllowed(
-        address cToken,
+        address bToken,
         address src,
         address dst,
         uint256 transferTokens
@@ -668,34 +668,34 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
         // Currently the only consideration is whether or not
         //  the src is allowed to redeem this many tokens
-        uint256 allowed = redeemAllowedInternal(cToken, src, transferTokens);
+        uint256 allowed = redeemAllowedInternal(bToken, src, transferTokens);
         if (allowed != uint256(Error.NO_ERROR)) {
             return allowed;
         }
 
         // Keep the flywheel moving
-        updateCompSupplyIndex(cToken);
-        distributeSupplierComp(cToken, src, false);
-        distributeSupplierComp(cToken, dst, false);
+        updateCompSupplyIndex(bToken);
+        distributeSupplierComp(bToken, src, false);
+        distributeSupplierComp(bToken, dst, false);
 
         return uint256(Error.NO_ERROR);
     }
 
     /**
      * @notice Validates transfer and reverts on rejection. May emit logs.
-     * @param cToken Asset being transferred
+     * @param bToken Asset being transferred
      * @param src The account which sources the tokens
      * @param dst The account which receives the tokens
-     * @param transferTokens The number of cTokens to transfer
+     * @param transferTokens The number of bTokens to transfer
      */
     function transferVerify(
-        address cToken,
+        address bToken,
         address src,
         address dst,
         uint256 transferTokens
     ) external {
         // Shh - currently unused
-        cToken;
+        bToken;
         src;
         dst;
         transferTokens;
@@ -710,13 +710,13 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
-     *  Note that `cTokenBalance` is the number of cTokens the account owns in the market,
+     *  Note that `bTokenBalance` is the number of bTokens the account owns in the market,
      *  whereas `borrowBalance` is the amount of underlying that the account has borrowed.
      */
     struct AccountLiquidityLocalVars {
         uint256 sumCollateral;
         uint256 sumBorrowPlusEffects;
-        uint256 cTokenBalance;
+        uint256 bTokenBalance;
         uint256 borrowBalance;
         uint256 exchangeRateMantissa;
         uint256 oraclePriceMantissa;
@@ -743,7 +743,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     {
         (Error err, uint256 liquidity, uint256 shortfall) = getHypotheticalAccountLiquidityInternal(
             account,
-            CToken(0),
+            BToken(0),
             0,
             0
         );
@@ -766,12 +766,12 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
             uint256
         )
     {
-        return getHypotheticalAccountLiquidityInternal(account, CToken(0), 0, 0);
+        return getHypotheticalAccountLiquidityInternal(account, BToken(0), 0, 0);
     }
 
     /**
      * @notice Determine what the account liquidity would be if the given amounts were redeemed/borrowed
-     * @param cTokenModify The market to hypothetically redeem/borrow in
+     * @param bTokenModify The market to hypothetically redeem/borrow in
      * @param account The account to determine liquidity for
      * @param redeemTokens The number of tokens to hypothetically redeem
      * @param borrowAmount The amount of underlying to hypothetically borrow
@@ -781,7 +781,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
      */
     function getHypotheticalAccountLiquidity(
         address account,
-        address cTokenModify,
+        address bTokenModify,
         uint256 redeemTokens,
         uint256 borrowAmount
     )
@@ -795,7 +795,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     {
         (Error err, uint256 liquidity, uint256 shortfall) = getHypotheticalAccountLiquidityInternal(
             account,
-            CToken(cTokenModify),
+            BToken(bTokenModify),
             redeemTokens,
             borrowAmount
         );
@@ -804,11 +804,11 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Determine what the account liquidity would be if the given amounts were redeemed/borrowed
-     * @param cTokenModify The market to hypothetically redeem/borrow in
+     * @param bTokenModify The market to hypothetically redeem/borrow in
      * @param account The account to determine liquidity for
      * @param redeemTokens The number of tokens to hypothetically redeem
      * @param borrowAmount The amount of underlying to hypothetically borrow
-     * @dev Note that we calculate the exchangeRateStored for each collateral cToken using stored data,
+     * @dev Note that we calculate the exchangeRateStored for each collateral bToken using stored data,
      *  without calculating accumulated interest.
      * @return (possible error code,
                 hypothetical account liquidity in excess of collateral requirements,
@@ -816,7 +816,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
      */
     function getHypotheticalAccountLiquidityInternal(
         address account,
-        CToken cTokenModify,
+        BToken bTokenModify,
         uint256 redeemTokens,
         uint256 borrowAmount
     )
@@ -837,12 +837,12 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         uint256 oErr;
 
         // For each asset the account is in
-        CToken[] memory assets = accountAssets[account];
+        BToken[] memory assets = accountAssets[account];
         for (uint256 i = 0; i < assets.length; i++) {
-            CToken asset = assets[i];
+            BToken asset = assets[i];
 
-            // Read the balances and exchange rate from the cToken
-            (oErr, vars.cTokenBalance, vars.borrowBalance, vars.exchangeRateMantissa) = asset.getAccountSnapshot(
+            // Read the balances and exchange rate from the bToken
+            (oErr, vars.bTokenBalance, vars.borrowBalance, vars.exchangeRateMantissa) = asset.getAccountSnapshot(
                 account
             );
             if (oErr != 0) {
@@ -862,8 +862,8 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
             // Pre-compute a conversion factor from tokens -> ether (normalized price value)
             vars.tokensToDenom = mul_(mul_(vars.collateralFactor, vars.exchangeRate), vars.oraclePrice);
 
-            // sumCollateral += tokensToDenom * cTokenBalance
-            vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.cTokenBalance, vars.sumCollateral);
+            // sumCollateral += tokensToDenom * bTokenBalance
+            vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.bTokenBalance, vars.sumCollateral);
 
             // sumBorrowPlusEffects += oraclePrice * borrowBalance
             vars.sumBorrowPlusEffects = mul_ScalarTruncateAddUInt(
@@ -872,8 +872,8 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
                 vars.sumBorrowPlusEffects
             );
 
-            // Calculate effects of interacting with cTokenModify
-            if (asset == cTokenModify) {
+            // Calculate effects of interacting with bTokenModify
+            if (asset == bTokenModify) {
                 // redeem effect
                 // sumBorrowPlusEffects += tokensToDenom * redeemTokens
                 vars.sumBorrowPlusEffects = mul_ScalarTruncateAddUInt(
@@ -907,20 +907,20 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
-     * @dev Used in liquidation (called in cToken.liquidateBorrowFresh)
-     * @param cTokenBorrowed The address of the borrowed cToken
-     * @param cTokenCollateral The address of the collateral cToken
-     * @param actualRepayAmount The amount of cTokenBorrowed underlying to convert into cTokenCollateral tokens
-     * @return (errorCode, number of cTokenCollateral tokens to be seized in a liquidation)
+     * @dev Used in liquidation (called in bToken.liquidateBorrowFresh)
+     * @param bTokenBorrowed The address of the borrowed bToken
+     * @param bTokenCollateral The address of the collateral bToken
+     * @param actualRepayAmount The amount of bTokenBorrowed underlying to convert into bTokenCollateral tokens
+     * @return (errorCode, number of bTokenCollateral tokens to be seized in a liquidation)
      */
     function liquidateCalculateSeizeTokens(
-        address cTokenBorrowed,
-        address cTokenCollateral,
+        address bTokenBorrowed,
+        address bTokenCollateral,
         uint256 actualRepayAmount
     ) external view returns (uint256, uint256) {
         /* Read oracle prices for borrowed and collateral markets */
-        uint256 priceBorrowedMantissa = oracle.getUnderlyingPrice(CToken(cTokenBorrowed));
-        uint256 priceCollateralMantissa = oracle.getUnderlyingPrice(CToken(cTokenCollateral));
+        uint256 priceBorrowedMantissa = oracle.getUnderlyingPrice(BToken(bTokenBorrowed));
+        uint256 priceCollateralMantissa = oracle.getUnderlyingPrice(BToken(bTokenCollateral));
         if (priceBorrowedMantissa == 0 || priceCollateralMantissa == 0) {
             return (uint256(Error.PRICE_ERROR), 0);
         }
@@ -931,7 +931,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
          *  seizeTokens = seizeAmount / exchangeRate
          *   = actualRepayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
          */
-        uint256 exchangeRateMantissa = CToken(cTokenCollateral).exchangeRateStored(); // Note: reverts on error
+        uint256 exchangeRateMantissa = BToken(bTokenCollateral).exchangeRateStored(); // Note: reverts on error
         Exp memory numerator = mul_(
             Exp({mantissa: liquidationIncentiveMantissa}),
             Exp({mantissa: priceBorrowedMantissa})
@@ -990,18 +990,18 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     /**
      * @notice Sets the collateralFactor for a market
      * @dev Admin function to set per-market collateralFactor
-     * @param cToken The market to set the factor on
+     * @param bToken The market to set the factor on
      * @param newCollateralFactorMantissa The new collateral factor, scaled by 1e18
      * @return uint 0=success, otherwise a failure. (See ErrorReporter for details)
      */
-    function _setCollateralFactor(CToken cToken, uint256 newCollateralFactorMantissa) external returns (uint256) {
+    function _setCollateralFactor(BToken bToken, uint256 newCollateralFactorMantissa) external returns (uint256) {
         // Check caller is admin
         if (msg.sender != admin) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SET_COLLATERAL_FACTOR_OWNER_CHECK);
         }
 
         // Verify market is listed
-        Market storage market = markets[address(cToken)];
+        Market storage market = markets[address(bToken)];
         if (!market.isListed) {
             return fail(Error.MARKET_NOT_LISTED, FailureInfo.SET_COLLATERAL_FACTOR_NO_EXISTS);
         }
@@ -1015,7 +1015,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         }
 
         // If collateral factor != 0, fail if price == 0
-        if (newCollateralFactorMantissa != 0 && oracle.getUnderlyingPrice(cToken) == 0) {
+        if (newCollateralFactorMantissa != 0 && oracle.getUnderlyingPrice(bToken) == 0) {
             return fail(Error.PRICE_ERROR, FailureInfo.SET_COLLATERAL_FACTOR_WITHOUT_PRICE);
         }
 
@@ -1024,7 +1024,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         market.collateralFactorMantissa = newCollateralFactorMantissa;
 
         // Emit event with asset, old collateral factor, and new collateral factor
-        emit NewCollateralFactor(cToken, oldCollateralFactorMantissa, newCollateralFactorMantissa);
+        emit NewCollateralFactor(bToken, oldCollateralFactorMantissa, newCollateralFactorMantissa);
 
         return uint256(Error.NO_ERROR);
     }
@@ -1056,34 +1056,34 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     /**
      * @notice Add the market to the markets mapping and set it as listed
      * @dev Admin function to set isListed and add support for the market
-     * @param cToken The address of the market (token) to list
+     * @param bToken The address of the market (token) to list
      * @return uint 0=success, otherwise a failure. (See enum Error for details)
      */
-    function _supportMarket(CToken cToken) external returns (uint256) {
+    function _supportMarket(BToken bToken) external returns (uint256) {
         if (msg.sender != admin) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
         }
 
-        if (markets[address(cToken)].isListed) {
+        if (markets[address(bToken)].isListed) {
             return fail(Error.MARKET_ALREADY_LISTED, FailureInfo.SUPPORT_MARKET_EXISTS);
         }
 
-        cToken.isCToken(); // Sanity check to make sure its really a CToken
+        bToken.isBToken(); // Sanity check to make sure its really a BToken
 
-        markets[address(cToken)] = Market({isListed: true, collateralFactorMantissa: 0, version: Version.VANILLA});
+        markets[address(bToken)] = Market({isListed: true, collateralFactorMantissa: 0, version: Version.VANILLA});
 
-        _addMarketInternal(address(cToken));
+        _addMarketInternal(address(bToken));
 
-        emit MarketListed(cToken);
+        emit MarketListed(bToken);
 
         return uint256(Error.NO_ERROR);
     }
 
-    function _addMarketInternal(address cToken) internal {
+    function _addMarketInternal(address bToken) internal {
         for (uint256 i = 0; i < allMarkets.length; i++) {
-            require(allMarkets[i] != CToken(cToken), "market already added");
+            require(allMarkets[i] != BToken(bToken), "market already added");
         }
-        allMarkets.push(CToken(cToken));
+        allMarkets.push(BToken(bToken));
     }
 
     /**
@@ -1104,48 +1104,48 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     }
 
     /**
-     * @notice Set the given supply caps for the given cToken markets. Supplying that brings total supplies to or above supply cap will revert.
+     * @notice Set the given supply caps for the given bToken markets. Supplying that brings total supplies to or above supply cap will revert.
      * @dev Admin or supplyCapGuardian function to set the supply caps. A supply cap of 0 corresponds to unlimited supplying.
-     * @param cTokens The addresses of the markets (tokens) to change the supply caps for
+     * @param bTokens The addresses of the markets (tokens) to change the supply caps for
      * @param newSupplyCaps The new supply cap values in underlying to be set. A value of 0 corresponds to unlimited supplying.
      */
-    function _setMarketSupplyCaps(CToken[] calldata cTokens, uint256[] calldata newSupplyCaps) external {
+    function _setMarketSupplyCaps(BToken[] calldata bTokens, uint256[] calldata newSupplyCaps) external {
         require(
             msg.sender == admin || msg.sender == supplyCapGuardian,
             "only admin or supply cap guardian can set supply caps"
         );
 
-        uint256 numMarkets = cTokens.length;
+        uint256 numMarkets = bTokens.length;
         uint256 numSupplyCaps = newSupplyCaps.length;
 
         require(numMarkets != 0 && numMarkets == numSupplyCaps, "invalid input");
 
         for (uint256 i = 0; i < numMarkets; i++) {
-            supplyCaps[address(cTokens[i])] = newSupplyCaps[i];
-            emit NewSupplyCap(cTokens[i], newSupplyCaps[i]);
+            supplyCaps[address(bTokens[i])] = newSupplyCaps[i];
+            emit NewSupplyCap(bTokens[i], newSupplyCaps[i]);
         }
     }
 
     /**
-     * @notice Set the given borrow caps for the given cToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
+     * @notice Set the given borrow caps for the given bToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
      * @dev Admin or borrowCapGuardian function to set the borrow caps. A borrow cap of 0 corresponds to unlimited borrowing.
-     * @param cTokens The addresses of the markets (tokens) to change the borrow caps for
+     * @param bTokens The addresses of the markets (tokens) to change the borrow caps for
      * @param newBorrowCaps The new borrow cap values in underlying to be set. A value of 0 corresponds to unlimited borrowing.
      */
-    function _setMarketBorrowCaps(CToken[] calldata cTokens, uint256[] calldata newBorrowCaps) external {
+    function _setMarketBorrowCaps(BToken[] calldata bTokens, uint256[] calldata newBorrowCaps) external {
         require(
             msg.sender == admin || msg.sender == borrowCapGuardian,
             "only admin or borrow cap guardian can set borrow caps"
         );
 
-        uint256 numMarkets = cTokens.length;
+        uint256 numMarkets = bTokens.length;
         uint256 numBorrowCaps = newBorrowCaps.length;
 
         require(numMarkets != 0 && numMarkets == numBorrowCaps, "invalid input");
 
         for (uint256 i = 0; i < numMarkets; i++) {
-            borrowCaps[address(cTokens[i])] = newBorrowCaps[i];
-            emit NewBorrowCap(cTokens[i], newBorrowCaps[i]);
+            borrowCaps[address(bTokens[i])] = newBorrowCaps[i];
+            emit NewBorrowCap(bTokens[i], newBorrowCaps[i]);
         }
     }
 
@@ -1188,23 +1188,23 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         return uint256(Error.NO_ERROR);
     }
 
-    function _setMintPaused(CToken cToken, bool state) public returns (bool) {
-        require(markets[address(cToken)].isListed, "cannot pause a market that is not listed");
+    function _setMintPaused(BToken bToken, bool state) public returns (bool) {
+        require(markets[address(bToken)].isListed, "cannot pause a market that is not listed");
         require(msg.sender == guardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
-        mintGuardianPaused[address(cToken)] = state;
-        emit ActionPaused(cToken, "Mint", state);
+        mintGuardianPaused[address(bToken)] = state;
+        emit ActionPaused(bToken, "Mint", state);
         return state;
     }
 
-    function _setBorrowPaused(CToken cToken, bool state) public returns (bool) {
-        require(markets[address(cToken)].isListed, "cannot pause a market that is not listed");
+    function _setBorrowPaused(BToken bToken, bool state) public returns (bool) {
+        require(markets[address(bToken)].isListed, "cannot pause a market that is not listed");
         require(msg.sender == guardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
-        borrowGuardianPaused[address(cToken)] = state;
-        emit ActionPaused(cToken, "Borrow", state);
+        borrowGuardianPaused[address(bToken)] = state;
+        emit ActionPaused(bToken, "Borrow", state);
         return state;
     }
 
@@ -1254,19 +1254,19 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Accrue COMP to the market by updating the supply index
-     * @param cToken The market whose supply index to update
+     * @param bToken The market whose supply index to update
      */
-    function updateCompSupplyIndex(address cToken) internal {
-        CompMarketState storage supplyState = compSupplyState[cToken];
-        uint256 supplySpeed = compSpeeds[cToken];
+    function updateCompSupplyIndex(address bToken) internal {
+        CompMarketState storage supplyState = compSupplyState[bToken];
+        uint256 supplySpeed = compSpeeds[bToken];
         uint256 blockNumber = getBlockNumber();
         uint256 deltaBlocks = sub_(blockNumber, uint256(supplyState.block));
         if (deltaBlocks > 0 && supplySpeed > 0) {
-            uint256 supplyTokens = CToken(cToken).totalSupply();
+            uint256 supplyTokens = BToken(bToken).totalSupply();
             uint256 compAccrued = mul_(deltaBlocks, supplySpeed);
             Double memory ratio = supplyTokens > 0 ? fraction(compAccrued, supplyTokens) : Double({mantissa: 0});
             Double memory index = add_(Double({mantissa: supplyState.index}), ratio);
-            compSupplyState[cToken] = CompMarketState({
+            compSupplyState[bToken] = CompMarketState({
                 index: safe224(index.mantissa, "new index exceeds 224 bits"),
                 block: safe32(blockNumber, "block number exceeds 32 bits")
             });
@@ -1277,19 +1277,19 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Accrue COMP to the market by updating the borrow index
-     * @param cToken The market whose borrow index to update
+     * @param bToken The market whose borrow index to update
      */
-    function updateCompBorrowIndex(address cToken, Exp memory marketBorrowIndex) internal {
-        CompMarketState storage borrowState = compBorrowState[cToken];
-        uint256 borrowSpeed = compSpeeds[cToken];
+    function updateCompBorrowIndex(address bToken, Exp memory marketBorrowIndex) internal {
+        CompMarketState storage borrowState = compBorrowState[bToken];
+        uint256 borrowSpeed = compSpeeds[bToken];
         uint256 blockNumber = getBlockNumber();
         uint256 deltaBlocks = sub_(blockNumber, uint256(borrowState.block));
         if (deltaBlocks > 0 && borrowSpeed > 0) {
-            uint256 borrowAmount = div_(CToken(cToken).totalBorrows(), marketBorrowIndex);
+            uint256 borrowAmount = div_(BToken(bToken).totalBorrows(), marketBorrowIndex);
             uint256 compAccrued = mul_(deltaBlocks, borrowSpeed);
             Double memory ratio = borrowAmount > 0 ? fraction(compAccrued, borrowAmount) : Double({mantissa: 0});
             Double memory index = add_(Double({mantissa: borrowState.index}), ratio);
-            compBorrowState[cToken] = CompMarketState({
+            compBorrowState[bToken] = CompMarketState({
                 index: safe224(index.mantissa, "new index exceeds 224 bits"),
                 block: safe32(blockNumber, "block number exceeds 32 bits")
             });
@@ -1300,55 +1300,55 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
 
     /**
      * @notice Calculate COMP accrued by a supplier and possibly transfer it to them
-     * @param cToken The market in which the supplier is interacting
+     * @param bToken The market in which the supplier is interacting
      * @param supplier The address of the supplier to distribute COMP to
      */
     function distributeSupplierComp(
-        address cToken,
+        address bToken,
         address supplier,
         bool distributeAll
     ) internal {
-        CompMarketState storage supplyState = compSupplyState[cToken];
+        CompMarketState storage supplyState = compSupplyState[bToken];
         Double memory supplyIndex = Double({mantissa: supplyState.index});
-        Double memory supplierIndex = Double({mantissa: compSupplierIndex[cToken][supplier]});
-        compSupplierIndex[cToken][supplier] = supplyIndex.mantissa;
+        Double memory supplierIndex = Double({mantissa: compSupplierIndex[bToken][supplier]});
+        compSupplierIndex[bToken][supplier] = supplyIndex.mantissa;
 
         if (supplierIndex.mantissa == 0 && supplyIndex.mantissa > 0) {
             supplierIndex.mantissa = compInitialIndex;
         }
 
         Double memory deltaIndex = sub_(supplyIndex, supplierIndex);
-        uint256 supplierTokens = CToken(cToken).balanceOf(supplier);
+        uint256 supplierTokens = BToken(bToken).balanceOf(supplier);
         uint256 supplierDelta = mul_(supplierTokens, deltaIndex);
         uint256 supplierAccrued = add_(compAccrued[supplier], supplierDelta);
         compAccrued[supplier] = transferComp(supplier, supplierAccrued, distributeAll ? 0 : compClaimThreshold);
-        emit DistributedSupplierComp(CToken(cToken), supplier, supplierDelta, supplyIndex.mantissa);
+        emit DistributedSupplierComp(BToken(bToken), supplier, supplierDelta, supplyIndex.mantissa);
     }
 
     /**
      * @notice Calculate COMP accrued by a borrower and possibly transfer it to them
      * @dev Borrowers will not begin to accrue until after the first interaction with the protocol.
-     * @param cToken The market in which the borrower is interacting
+     * @param bToken The market in which the borrower is interacting
      * @param borrower The address of the borrower to distribute COMP to
      */
     function distributeBorrowerComp(
-        address cToken,
+        address bToken,
         address borrower,
         Exp memory marketBorrowIndex,
         bool distributeAll
     ) internal {
-        CompMarketState storage borrowState = compBorrowState[cToken];
+        CompMarketState storage borrowState = compBorrowState[bToken];
         Double memory borrowIndex = Double({mantissa: borrowState.index});
-        Double memory borrowerIndex = Double({mantissa: compBorrowerIndex[cToken][borrower]});
-        compBorrowerIndex[cToken][borrower] = borrowIndex.mantissa;
+        Double memory borrowerIndex = Double({mantissa: compBorrowerIndex[bToken][borrower]});
+        compBorrowerIndex[bToken][borrower] = borrowIndex.mantissa;
 
         if (borrowerIndex.mantissa > 0) {
             Double memory deltaIndex = sub_(borrowIndex, borrowerIndex);
-            uint256 borrowerAmount = div_(CToken(cToken).borrowBalanceStored(borrower), marketBorrowIndex);
+            uint256 borrowerAmount = div_(BToken(bToken).borrowBalanceStored(borrower), marketBorrowIndex);
             uint256 borrowerDelta = mul_(borrowerAmount, deltaIndex);
             uint256 borrowerAccrued = add_(compAccrued[borrower], borrowerDelta);
             compAccrued[borrower] = transferComp(borrower, borrowerAccrued, distributeAll ? 0 : compClaimThreshold);
-            emit DistributedBorrowerComp(CToken(cToken), borrower, borrowerDelta, borrowIndex.mantissa);
+            emit DistributedBorrowerComp(BToken(bToken), borrower, borrowerDelta, borrowIndex.mantissa);
         }
     }
 
@@ -1386,41 +1386,41 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     /**
      * @notice Claim all the comp accrued by holder in the specified markets
      * @param holder The address to claim COMP for
-     * @param cTokens The list of markets to claim COMP in
+     * @param bTokens The list of markets to claim COMP in
      */
-    function claimComp(address holder, CToken[] memory cTokens) public {
+    function claimComp(address holder, BToken[] memory bTokens) public {
         address[] memory holders = new address[](1);
         holders[0] = holder;
-        claimComp(holders, cTokens, true, true);
+        claimComp(holders, bTokens, true, true);
     }
 
     /**
      * @notice Claim all comp accrued by the holders
      * @param holders The addresses to claim COMP for
-     * @param cTokens The list of markets to claim COMP in
+     * @param bTokens The list of markets to claim COMP in
      * @param borrowers Whether or not to claim COMP earned by borrowing
      * @param suppliers Whether or not to claim COMP earned by supplying
      */
     function claimComp(
         address[] memory holders,
-        CToken[] memory cTokens,
+        BToken[] memory bTokens,
         bool borrowers,
         bool suppliers
     ) public {
-        for (uint256 i = 0; i < cTokens.length; i++) {
-            CToken cToken = cTokens[i];
-            require(markets[address(cToken)].isListed, "market must be listed");
+        for (uint256 i = 0; i < bTokens.length; i++) {
+            BToken bToken = bTokens[i];
+            require(markets[address(bToken)].isListed, "market must be listed");
             if (borrowers == true) {
-                Exp memory borrowIndex = Exp({mantissa: cToken.borrowIndex()});
-                updateCompBorrowIndex(address(cToken), borrowIndex);
+                Exp memory borrowIndex = Exp({mantissa: bToken.borrowIndex()});
+                updateCompBorrowIndex(address(bToken), borrowIndex);
                 for (uint256 j = 0; j < holders.length; j++) {
-                    distributeBorrowerComp(address(cToken), holders[j], borrowIndex, true);
+                    distributeBorrowerComp(address(bToken), holders[j], borrowIndex, true);
                 }
             }
             if (suppliers == true) {
-                updateCompSupplyIndex(address(cToken));
+                updateCompSupplyIndex(address(bToken));
                 for (uint256 j = 0; j < holders.length; j++) {
-                    distributeSupplierComp(address(cToken), holders[j], true);
+                    distributeSupplierComp(address(bToken), holders[j], true);
                 }
             }
         }
@@ -1429,44 +1429,44 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
     /*** Comp Distribution Admin ***/
 
     /**
-     * @notice Set cTokens compSpeed
-     * @param cTokens The addresses of cTokens
+     * @notice Set bTokens compSpeed
+     * @param bTokens The addresses of bTokens
      * @param speeds The list of COMP speeds
      */
-    function _setCompSpeeds(address[] memory cTokens, uint256[] memory speeds) public {
+    function _setCompSpeeds(address[] memory bTokens, uint256[] memory speeds) public {
         require(msg.sender == admin, "only admin can set comp speeds");
 
-        uint256 numMarkets = cTokens.length;
+        uint256 numMarkets = bTokens.length;
         uint256 numSpeeds = speeds.length;
 
         require(numMarkets != 0 && numMarkets == numSpeeds, "invalid input");
 
         for (uint256 i = 0; i < numMarkets; i++) {
             if (speeds[i] > 0) {
-                _initCompState(cTokens[i]);
+                _initCompState(bTokens[i]);
             }
 
             // Update supply and borrow index.
-            CToken cToken = CToken(cTokens[i]);
-            Exp memory borrowIndex = Exp({mantissa: cToken.borrowIndex()});
-            updateCompSupplyIndex(address(cToken));
-            updateCompBorrowIndex(address(cToken), borrowIndex);
+            BToken bToken = BToken(bTokens[i]);
+            Exp memory borrowIndex = Exp({mantissa: bToken.borrowIndex()});
+            updateCompSupplyIndex(address(bToken));
+            updateCompBorrowIndex(address(bToken), borrowIndex);
 
-            compSpeeds[address(cToken)] = speeds[i];
-            emit CompSpeedUpdated(cToken, speeds[i]);
+            compSpeeds[address(bToken)] = speeds[i];
+            emit CompSpeedUpdated(bToken, speeds[i]);
         }
     }
 
-    function _initCompState(address cToken) internal {
-        if (compSupplyState[cToken].index == 0 && compSupplyState[cToken].block == 0) {
-            compSupplyState[cToken] = CompMarketState({
+    function _initCompState(address bToken) internal {
+        if (compSupplyState[bToken].index == 0 && compSupplyState[bToken].block == 0) {
+            compSupplyState[bToken] = CompMarketState({
                 index: compInitialIndex,
                 block: safe32(getBlockNumber(), "block number exceeds 32 bits")
             });
         }
 
-        if (compBorrowState[cToken].index == 0 && compBorrowState[cToken].block == 0) {
-            compBorrowState[cToken] = CompMarketState({
+        if (compBorrowState[bToken].index == 0 && compBorrowState[bToken].block == 0) {
+            compBorrowState[bToken] = CompMarketState({
                 index: compInitialIndex,
                 block: safe32(getBlockNumber(), "block number exceeds 32 bits")
             });
@@ -1478,7 +1478,7 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
      * @dev The automatic getter may be used to access an individual market.
      * @return The list of market addresses
      */
-    function getAllMarkets() public view returns (CToken[] memory) {
+    function getAllMarkets() public view returns (BToken[] memory) {
         return allMarkets;
     }
 

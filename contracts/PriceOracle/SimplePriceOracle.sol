@@ -1,7 +1,7 @@
 pragma solidity ^0.5.16;
 
 import "./PriceOracle.sol";
-import "../CErc20.sol";
+import "../BErc20.sol";
 
 contract SimplePriceOracle is PriceOracle {
     mapping(address => uint256) prices;
@@ -12,16 +12,16 @@ contract SimplePriceOracle is PriceOracle {
         uint256 newPriceMantissa
     );
 
-    function getUnderlyingPrice(CToken cToken) public view returns (uint256) {
-        if (compareStrings(cToken.symbol(), "crETH")) {
+    function getUnderlyingPrice(BToken bToken) public view returns (uint256) {
+        if (compareStrings(bToken.symbol(), "bETH")) {
             return 1e18;
         } else {
-            return prices[address(CErc20(address(cToken)).underlying())];
+            return prices[address(BErc20(address(bToken)).underlying())];
         }
     }
 
-    function setUnderlyingPrice(CToken cToken, uint256 underlyingPriceMantissa) public {
-        address asset = address(CErc20(address(cToken)).underlying());
+    function setUnderlyingPrice(BToken bToken, uint256 underlyingPriceMantissa) public {
+        address asset = address(BErc20(address(bToken)).underlying());
         emit PricePosted(asset, prices[asset], underlyingPriceMantissa, underlyingPriceMantissa);
         prices[asset] = underlyingPriceMantissa;
     }
