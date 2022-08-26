@@ -6,8 +6,8 @@ import "./PriceOracle.sol";
 import "./interfaces/BandReference.sol";
 import "./interfaces/FeedRegistryInterface.sol";
 import "./interfaces/V1PriceOracleInterface.sol";
-import "../CErc20.sol";
-import "../CToken.sol";
+import "../BErc20.sol";
+import "../BToken.sol";
 import "../Exponential.sol";
 import "../EIP20Interface.sol";
 
@@ -75,12 +75,12 @@ contract PriceOracleProxyIB is PriceOracle, Exponential, Denominations {
     }
 
     /**
-     * @notice Get the underlying price of a listed cToken asset
-     * @param cToken The cToken to get the underlying price of
+     * @notice Get the underlying price of a listed bToken asset
+     * @param bToken The bToken to get the underlying price of
      * @return The underlying asset price mantissa (scaled by 1e18)
      */
-    function getUnderlyingPrice(CToken cToken) public view returns (uint256) {
-        address underlying = CErc20(address(cToken)).underlying();
+    function getUnderlyingPrice(BToken bToken) public view returns (uint256) {
+        address underlying = BErc20(address(bToken)).underlying();
 
         // Get price from ChainLink.
         AggregatorInfo storage aggregatorInfo = aggregators[underlying];

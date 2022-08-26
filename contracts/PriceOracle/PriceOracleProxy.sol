@@ -8,8 +8,8 @@ import "./interfaces/UniswapV2Interface.sol";
 import "./interfaces/V1PriceOracleInterface.sol";
 import "./interfaces/XSushiExchangeRateInterface.sol";
 import "./interfaces/YVaultTokenInterface.sol";
-import "../CErc20.sol";
-import "../CToken.sol";
+import "../BErc20.sol";
+import "../BToken.sol";
 import "../Exponential.sol";
 import "../EIP20Interface.sol";
 
@@ -95,7 +95,7 @@ contract PriceOracleProxy is PriceOracle, Exponential, Denominations {
         0xc4E15973E6fF2A35cC804c2CF9D2a1b817a8b40F // ibBTC
     ];
 
-    address public cEthAddress;
+    address public bEthAddress;
 
     address public constant usdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address public constant wethAddress = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -106,38 +106,38 @@ contract PriceOracleProxy is PriceOracle, Exponential, Denominations {
     /**
      * @param admin_ The address of admin to set aggregators, LPs, curve tokens, or Yvault tokens
      * @param v1PriceOracle_ The address of the v1 price oracle, which will continue to operate and hold prices for collateral assets
-     * @param cEthAddress_ The address of cETH, which will return a constant 1e18, since all prices relative to ether
+     * @param bEthAddress_ The address of bETH, which will return a constant 1e18, since all prices relative to ether
      * @param registry_ The address of ChainLink registry
      */
     constructor(
         address admin_,
         address v1PriceOracle_,
-        address cEthAddress_,
+        address bEthAddress_,
         address registry_
     ) public {
         admin = admin_;
         v1PriceOracle = V1PriceOracleInterface(v1PriceOracle_);
-        cEthAddress = cEthAddress_;
+        bEthAddress = bEthAddress_;
         registry = FeedRegistryInterface(registry_);
     }
 
     /**
-     * @notice Get the underlying price of a listed cToken asset
-     * @param cToken The cToken to get the underlying price of
+     * @notice Get the underlying price of a listed bToken asset
+     * @param bToken The bToken to get the underlying price of
      * @return The underlying asset price mantissa (scaled by 1e18)
      */
-    function getUnderlyingPrice(CToken cToken) public view returns (uint256) {
-        address cTokenAddress = address(cToken);
-        if (cTokenAddress == cEthAddress) {
+    function getUnderlyingPrice(BToken bToken) public view returns (uint256) {
+        address bTokenAddress = address(bToken);
+        if (bTokenAddress == bEthAddress) {
             // ether always worth 1
             return 1e18;
-        } else if (cTokenAddress == crXSushiAddress) {
+        } else if (bTokenAddress == crXSushiAddress) {
             // Handle xSUSHI.
             uint256 exchangeRate = XSushiExchangeRateInterface(xSushiExRateAddress).getExchangeRate();
             return mul_(getTokenPrice(sushiAddress), Exp({mantissa: exchangeRate}));
         }
 
-        address underlying = CErc20(cTokenAddress).underlying();
+        address underlying = BErc20(bTokenAddress).underlying();
 
         // Handle LP tokens.
         if (isUnderlyingLP[underlying]) {
@@ -175,7 +175,7 @@ contract PriceOracleProxy is PriceOracle, Exponential, Denominations {
             uint256 price = getPriceFromChainlink(aggregatorInfo.base, aggregatorInfo.quote);
             if (aggregatorInfo.quote == Denominations.USD) {
                 // Convert the price to ETH based if it's USD based.
-                price = mul_(price, Exp({mantissa: getUsdcEthPrice()}));
+                price = mul_(price, Exp({mantissa: getUsdbEthPrice()}));
             }
             uint256 underlyingDecimals = EIP20Interface(token).decimals();
             return mul_(price, 10**(18 - underlyingDecimals));
@@ -258,7 +258,7 @@ contract PriceOracleProxy is PriceOracle, Exponential, Denominations {
         }
 
         // We treat USDC as USD and convert the price to ETH base.
-        return mul_(getUsdcEthPrice(), Exp({mantissa: virtualPrice}));
+        return mul_(getUsdbEthPrice(), Exp({mantissa: virtualPrice}));
     }
 
     /**
@@ -266,7 +266,7 @@ contract PriceOracleProxy is PriceOracle, Exponential, Denominations {
      * @dev We treat USDC as USD for convenience
      * @return The USDC price
      */
-    function getUsdcEthPrice() internal view returns (uint256) {
+    function getUsdbEthPrice() internal view returns (uint256) {
         return getTokenPrice(usdcAddress) / 1e12;
     }
 
@@ -320,7 +320,7 @@ contract PriceOracleProxy is PriceOracle, Exponential, Denominations {
     /**
      * @notice See assets as LP tokens for multiple tokens
      * @param tokenAddresses The list of tokens
-     * @param isLP The list of cToken properties (it's LP or not)
+     * @param isLP The list of bToken properties (it's LP or not)
      */
     function _setLPs(address[] calldata tokenAddresses, bool[] calldata isLP) external {
         require(msg.sender == admin, "only the admin may set LPs");

@@ -1,11 +1,11 @@
 pragma solidity ^0.5.16;
 
-import "../../contracts/CTokenAdmin.sol";
+import "../../contracts/BTokenAdmin.sol";
 
-contract MockCTokenAdmin is CTokenAdmin {
+contract MockCTokenAdmin is BTokenAdmin {
     uint256 public blockTimestamp;
 
-    constructor(address payable _admin) public CTokenAdmin(_admin) {}
+    constructor(address payable _admin) public BTokenAdmin(_admin) {}
 
     function setBlockTimestamp(uint256 timestamp) public {
         blockTimestamp = timestamp;

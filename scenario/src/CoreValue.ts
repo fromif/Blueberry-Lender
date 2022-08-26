@@ -21,8 +21,8 @@ import { getUserValue, userFetchers } from './Value/UserValue';
 import { comptrollerFetchers, getComptrollerValue } from './Value/ComptrollerValue';
 import { comptrollerImplFetchers, getComptrollerImplValue } from './Value/ComptrollerImplValue';
 import { getUnitrollerValue, unitrollerFetchers } from './Value/UnitrollerValue';
-import { cTokenFetchers, getCTokenValue } from './Value/CTokenValue';
-import { cTokenDelegateFetchers, getCTokenDelegateValue } from './Value/CTokenDelegateValue';
+import { bTokenFetchers, getBTokenValue } from './Value/BTokenValue';
+import { bTokenDelegateFetchers, getBTokenDelegateValue } from './Value/BTokenDelegateValue';
 import { erc20Fetchers, getErc20Value } from './Value/Erc20Value';
 import { getInterestRateModelValue, interestRateModelFetchers } from './Value/InterestRateModelValue';
 import { getPriceOracleValue, priceOracleFetchers } from './Value/PriceOracleValue';
@@ -773,8 +773,8 @@ const fetchers = [
 
       * "Equal given:<Value> expected:<Value>" - Returns true if given values are equal
         * E.g. "Equal (Exactly 0) Zero"
-        * E.g. "Equal (CToken cZRX TotalSupply) (Exactly 55)"
-        * E.g. "Equal (CToken cZRX Comptroller) (Comptroller Address)"
+        * E.g. "Equal (BToken bZRX TotalSupply) (Exactly 55)"
+        * E.g. "Equal (BToken bZRX Comptroller) (Comptroller Address)"
     `,
     'Equal',
     [new Arg('given', getCoreValue), new Arg('expected', getCoreValue)],
@@ -842,25 +842,25 @@ const fetchers = [
   ),
   new Fetcher<{ res: Value }, Value>(
     `
-      #### CToken
+      #### BToken
 
-      * "CToken ...cTokenArgs" - Returns cToken value
+      * "BToken ...bTokenArgs" - Returns bToken value
     `,
-    'CToken',
-    [new Arg('res', getCTokenValue, { variadic: true })],
+    'BToken',
+    [new Arg('res', getBTokenValue, { variadic: true })],
     async (world, { res }) => res,
-    { subExpressions: cTokenFetchers() }
+    { subExpressions: bTokenFetchers() }
   ),
   new Fetcher<{ res: Value }, Value>(
     `
-      #### CTokenDelegate
+      #### BTokenDelegate
 
-      * "CTokenDelegate ...cTokenDelegateArgs" - Returns cToken delegate value
+      * "BTokenDelegate ...bTokenDelegateArgs" - Returns bToken delegate value
     `,
-    'CTokenDelegate',
-    [new Arg('res', getCTokenDelegateValue, { variadic: true })],
+    'BTokenDelegate',
+    [new Arg('res', getBTokenDelegateValue, { variadic: true })],
     async (world, { res }) => res,
-    { subExpressions: cTokenDelegateFetchers() }
+    { subExpressions: bTokenDelegateFetchers() }
   ),
   new Fetcher<{ res: Value }, Value>(
     `

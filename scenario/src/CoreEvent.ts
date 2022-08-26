@@ -15,8 +15,8 @@ import { assertionCommands, processAssertionEvent } from './Event/AssertionEvent
 import { comptrollerCommands, processComptrollerEvent } from './Event/ComptrollerEvent';
 import { processUnitrollerEvent, unitrollerCommands } from './Event/UnitrollerEvent';
 import { comptrollerImplCommands, processComptrollerImplEvent } from './Event/ComptrollerImplEvent';
-import { cTokenCommands, processCTokenEvent } from './Event/CTokenEvent';
-import { cTokenDelegateCommands, processCTokenDelegateEvent } from './Event/CTokenDelegateEvent';
+import { bTokenCommands, processBTokenEvent } from './Event/BTokenEvent';
+import { bTokenDelegateCommands, processBTokenDelegateEvent } from './Event/BTokenDelegateEvent';
 import { erc20Commands, processErc20Event } from './Event/Erc20Event';
 import { interestRateModelCommands, processInterestRateModelEvent } from './Event/InterestRateModelEvent';
 import { priceOracleCommands, processPriceOracleEvent } from './Event/PriceOracleEvent';
@@ -216,7 +216,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
         #### Read
 
         * "Read ..." - Reads given value and prints result
-          * E.g. "Read CToken cBAT ExchangeRateStored" - Returns exchange rate of cBAT
+          * E.g. "Read BToken cBAT ExchangeRateStored" - Returns exchange rate of bBAT
       `,
       'Read',
       [new Arg('res', getCoreValue, { variadic: true })],
@@ -486,7 +486,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### From
 
       * "From <User> <Event>" - Runs event as the given user
-        * E.g. "From Geoff (CToken cZRX Mint 5e18)"
+        * E.g. "From Geoff (BToken bZRX Mint 5e18)"
     `,
     'From',
     [new Arg('account', getAddressV), new Arg('event', getEventV)],
@@ -498,7 +498,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### Trx
 
       * "Trx ...trxEvent" - Handles event to set details of next transaction
-        * E.g. "Trx Value 1.0e18 (CToken cEth Mint 1.0e18)"
+        * E.g. "Trx Value 1.0e18 (BToken bEth Mint 1.0e18)"
     `,
     'Trx',
     [new Arg('event', getEventV, { variadic: true })],
@@ -511,7 +511,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### Invariant
 
       * "Invariant ...invariant" - Adds a new invariant to the world which is checked after each transaction
-        * E.g. "Invariant Static (CToken cZRX TotalSupply)"
+        * E.g. "Invariant Static (BToken bZRX TotalSupply)"
     `,
     'Invariant',
     [new Arg('event', getEventV, { variadic: true })],
@@ -524,7 +524,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### Expect
 
       * "Expect ...expectation" - Adds an expectation to hold after the next transaction
-        * E.g. "Expect Changes (CToken cZRX TotalSupply) +10.0e18"
+        * E.g. "Expect Changes (BToken bZRX TotalSupply) +10.0e18"
     `,
     'Expect',
     [new Arg('event', getEventV, { variadic: true })],
@@ -666,28 +666,28 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
 
   new Command<{ event: EventV }>(
     `
-      #### CToken
+      #### BToken
 
-      * "CToken ...event" - Runs given CToken event
-        * E.g. "CToken cZRX Mint 5e18"
+      * "BToken ...event" - Runs given BToken event
+        * E.g. "BToken cZRX Mint 5e18"
     `,
-    'CToken',
+    'BToken',
     [new Arg('event', getEventV, { variadic: true })],
-    (world, from, { event }) => processCTokenEvent(world, event.val, from),
-    { subExpressions: cTokenCommands() }
+    (world, from, { event }) => processBTokenEvent(world, event.val, from),
+    { subExpressions: bTokenCommands() }
   ),
 
   new Command<{ event: EventV }>(
     `
-      #### CTokenDelegate
+      #### BTokenDelegate
 
-      * "CTokenDelegate ...event" - Runs given CTokenDelegate event
-        * E.g. "CTokenDelegate Deploy CDaiDelegate cDaiDelegate"
+      * "BTokenDelegate ...event" - Runs given BTokenDelegate event
+        * E.g. "BTokenDelegate Deploy BDaiDelegate bDaiDelegate"
     `,
-    'CTokenDelegate',
+    'BTokenDelegate',
     [new Arg('event', getEventV, { variadic: true })],
-    (world, from, { event }) => processCTokenDelegateEvent(world, event.val, from),
-    { subExpressions: cTokenDelegateCommands() }
+    (world, from, { event }) => processBTokenDelegateEvent(world, event.val, from),
+    { subExpressions: bTokenDelegateCommands() }
   ),
 
   new Command<{ event: EventV }>(
@@ -734,7 +734,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### PriceOracleProxy
 
       * "PriceOracleProxy ...event" - Runs given Price Oracle event
-      * E.g. "PriceOracleProxy Deploy (Unitroller Address) (PriceOracle Address) (CToken cETH Address)"
+      * E.g. "PriceOracleProxy Deploy (Unitroller Address) (PriceOracle Address) (BToken bETH Address)"
     `,
     'PriceOracleProxy',
     [new Arg('event', getEventV, { variadic: true })],

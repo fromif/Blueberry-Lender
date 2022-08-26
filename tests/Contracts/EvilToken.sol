@@ -2,10 +2,10 @@ pragma solidity ^0.5.16;
 
 import "./ERC20.sol";
 import "./FaucetToken.sol";
-import "../../contracts/Legacy/CEther.sol";
-import "../../contracts/Legacy/CTokenDeprecated.sol";
-import "../../contracts/CToken.sol";
-import "../../contracts/CErc20.sol";
+import "../../contracts/Legacy/BEther.sol";
+import "../../contracts/Legacy/BTokenDeprecated.sol";
+import "../../contracts/BToken.sol";
+import "../../contracts/BErc20.sol";
 import "../../contracts/ComptrollerInterface.sol";
 
 /**
@@ -79,8 +79,8 @@ contract EvilAccount is RecipientInterface {
 
     function attackBorrow() external payable {
         // Mint crEth.
-        CEther(crEth).mint.value(msg.value)();
-        ComptrollerInterface comptroller = CEther(crEth).comptroller();
+        BEther(crEth).mint.value(msg.value)();
+        ComptrollerInterface comptroller = BEther(crEth).comptroller();
 
         // Enter the market.
         address[] memory markets = new address[](1);
@@ -88,12 +88,12 @@ contract EvilAccount is RecipientInterface {
         comptroller.enterMarkets(markets);
 
         // Borrow EvilTransferToken.
-        require(CErc20(crEvilToken).borrow(borrowAmount) == 0, "first borrow failed");
+        require(BErc20(crEvilToken).borrow(borrowAmount) == 0, "first borrow failed");
     }
 
     function tokensReceived() external {
         // Borrow Eth.
-        require(CEther(crEth).borrow(borrowAmount) != 0, "reentry borrow succeed");
+        require(BEther(crEth).borrow(borrowAmount) != 0, "reentry borrow succeed");
     }
 
     function() external payable {}
@@ -119,7 +119,7 @@ contract EvilAccount2 is RecipientInterface {
 
     function attackLiquidate() external {
         // Make sure the evil account has enough balance to repay.
-        address evilToken = CErc20(crEvilToken).underlying();
+        address evilToken = BErc20(crEvilToken).underlying();
         require(ERC20Base(evilToken).balanceOf(address(this)) > repayAmount, "insufficient balance");
 
         // Approve for repayment.
@@ -127,21 +127,21 @@ contract EvilAccount2 is RecipientInterface {
 
         // Liquidate EvilTransferToken.
         require(
-            CErc20(crEvilToken).liquidateBorrow(borrower, repayAmount, CToken(crWeth)) == 0,
+            BErc20(crEvilToken).liquidateBorrow(borrower, repayAmount, BToken(crWeth)) == 0,
             "first liquidate failed"
         );
     }
 
     function tokensReceived() external {
         // Make sure the evil account has enough balance to repay.
-        address weth = CErc20(crWeth).underlying();
+        address weth = BErc20(crWeth).underlying();
         require(ERC20Base(weth).balanceOf(address(this)) > repayAmount, "insufficient balance");
 
         // Approve for repayment.
         require(ERC20Base(weth).approve(crWeth, repayAmount) == true, "failed to approve");
 
         // Liquidate ETH.
-        CErc20(crWeth).liquidateBorrow(borrower, repayAmount, CToken(crWeth));
+        BErc20(crWeth).liquidateBorrow(borrower, repayAmount, BToken(crWeth));
     }
 }
 

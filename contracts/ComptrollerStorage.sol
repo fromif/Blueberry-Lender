@@ -1,6 +1,6 @@
 pragma solidity ^0.5.16;
 
-import "./CToken.sol";
+import "./BToken.sol";
 import "./PriceOracle/PriceOracle.sol";
 
 contract UnitrollerAdminStorage {
@@ -44,7 +44,7 @@ contract ComptrollerV1Storage is UnitrollerAdminStorage {
     /**
      * @notice Per-account mapping of "assets you are in"
      */
-    mapping(address => CToken[]) public accountAssets;
+    mapping(address => BToken[]) public accountAssets;
 
     enum Version {
         VANILLA,
@@ -63,12 +63,12 @@ contract ComptrollerV1Storage is UnitrollerAdminStorage {
         uint256 collateralFactorMantissa;
         /// @notice Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
-        /// @notice CToken version
+        /// @notice BToken version
         Version version;
     }
 
     /**
-     * @notice Official mapping of cTokens -> Market metadata
+     * @notice Official mapping of bTokens -> Market metadata
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
@@ -94,7 +94,7 @@ contract ComptrollerV1Storage is UnitrollerAdminStorage {
     }
 
     /// @notice A list of all markets
-    CToken[] public allMarkets;
+    BToken[] public allMarkets;
 
     /// @notice The portion of compRate that each market currently receives
     /// @dev This storage is deprecated.
@@ -123,13 +123,13 @@ contract ComptrollerV1Storage is UnitrollerAdminStorage {
     /// @notice The borrowCapGuardian can set borrowCaps to any number for any market. Lowering the borrow cap could disable borrowing on the given market.
     address public borrowCapGuardian;
 
-    /// @notice Borrow caps enforced by borrowAllowed for each cToken address. Defaults to zero which corresponds to unlimited borrowing.
+    /// @notice Borrow caps enforced by borrowAllowed for each bToken address. Defaults to zero which corresponds to unlimited borrowing.
     mapping(address => uint256) public borrowCaps;
 
     /// @notice The supplyCapGuardian can set supplyCaps to any number for any market. Lowering the supply cap could disable supplying to the given market.
     address public supplyCapGuardian;
 
-    /// @notice Supply caps enforced by mintAllowed for each cToken address. Defaults to zero which corresponds to unlimited supplying.
+    /// @notice Supply caps enforced by mintAllowed for each bToken address. Defaults to zero which corresponds to unlimited supplying.
     mapping(address => uint256) public supplyCaps;
 
     /// @notice creditLimits allowed specific protocols to borrow and repay without collateral.
