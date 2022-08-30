@@ -3,7 +3,7 @@ pragma solidity ^0.5.16;
 import "./BTokenInterfaces.sol";
 
 /**
- * @title Compound's CErc20Delegator Contract
+ * @title Compound's BErc20Delegator Contract
  * @notice BTokens which wrap an EIP-20 underlying and delegate to an implementation
  * @author Compound
  */

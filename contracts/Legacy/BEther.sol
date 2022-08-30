@@ -3,7 +3,7 @@ pragma solidity ^0.5.16;
 import "./BTokenDeprecated.sol";
 
 /**
- * @title Compound's CEther Contract
+ * @title Compound's BEther Contract
  * @notice BToken which wraps Ether
  * @author Compound
  */

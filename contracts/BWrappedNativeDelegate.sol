@@ -3,7 +3,7 @@ pragma solidity ^0.5.16;
 import "./BWrappedNative.sol";
 
 /**
- * @title Cream's CWrappedNativeDelegate Contract
+ * @title Cream's BWrappedNativeDelegate Contract
  * @notice BTokens which wrap an EIP-20 underlying and are delegated to
  * @author Cream
  */

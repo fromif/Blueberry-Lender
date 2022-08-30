@@ -3,7 +3,7 @@ pragma solidity ^0.5.16;
 import "./BTokenInterfaces.sol";
 
 /**
- * @title Compound's CWrappedNativeDelegator Contract
+ * @title Compound's BWrappedNativeDelegator Contract
  * @notice BTokens which wrap an EIP-20 underlying and delegate to an implementation
  * @author Compound
  */
@@ -69,7 +69,7 @@ contract BWrappedNativeDelegator is BTokenInterface, BWrappedNativeInterface, BD
         bool allowResign,
         bytes memory becomeImplementationData
     ) public {
-        require(msg.sender == admin, "CWrappedNativeDelegator::_setImplementation: Caller must be admin");
+        require(msg.sender == admin, "BWrappedNativeDelegator::_setImplementation: Caller must be admin");
 
         if (allowResign) {
             delegateToImplementation(abi.encodeWithSignature("_resignImplementation()"));
@@ -264,7 +264,7 @@ contract BWrappedNativeDelegator is BTokenInterface, BWrappedNativeInterface, BD
     }
 
     /**
-     * @dev CWrappedNative doesn't have the collateral cap functionality. Return the supply cap for
+     * @dev BWrappedNative doesn't have the collateral cap functionality. Return the supply cap for
      * interface consistency.
      * @return the supply cap of this market
      */
@@ -273,7 +273,7 @@ contract BWrappedNativeDelegator is BTokenInterface, BWrappedNativeInterface, BD
     }
 
     /**
-     * @dev CWrappedNative doesn't have the collateral cap functionality. Return the total supply for
+     * @dev BWrappedNative doesn't have the collateral cap functionality. Return the total supply for
      * interface consistency.
      * @return the total supply of this market
      */

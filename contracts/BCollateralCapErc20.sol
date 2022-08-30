@@ -5,7 +5,7 @@ import "./ERC3156FlashLenderInterface.sol";
 import "./ERC3156FlashBorrowerInterface.sol";
 
 /**
- * @title Cream's CCollateralCapErc20 Contract
+ * @title Cream's BCollateralCapErc20 Contract
  * @notice BTokens which wrap an EIP-20 underlying with collateral cap
  * @author Cream
  */

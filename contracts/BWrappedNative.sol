@@ -14,7 +14,7 @@ interface WrappedNativeInterface {
 }
 
 /**
- * @title Cream's CWrappedNative Contract
+ * @title Cream's BWrappedNative Contract
  * @notice BTokens which wrap the native token
  * @author Cream
  */
@@ -323,7 +323,7 @@ contract BWrappedNative is BToken, BWrappedNativeInterface {
     }
 
     /**
-     * @dev CWrappedNative doesn't have the collateral cap functionality. Return the supply cap for
+     * @dev BWrappedNative doesn't have the collateral cap functionality. Return the supply cap for
      * interface consistency.
      * @return the supply cap of this market
      */
@@ -332,7 +332,7 @@ contract BWrappedNative is BToken, BWrappedNativeInterface {
     }
 
     /**
-     * @dev CWrappedNative doesn't have the collateral cap functionality. Return the total supply for
+     * @dev BWrappedNative doesn't have the collateral cap functionality. Return the total supply for
      * interface consistency.
      * @return the total supply of this market
      */

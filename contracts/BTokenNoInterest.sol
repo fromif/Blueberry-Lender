@@ -991,7 +991,7 @@ contract BTokenNoInterest is BTokenInterface, Exponential, TokenErrorReporter {
         totalReserves = totalReservesNew;
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
-        // Restrict reducing reserves in wrapped token. Implementations except `CWrappedNative` won't use parameter `isNative`.
+        // Restrict reducing reserves in wrapped token. Implementations except `BWrappedNative` won't use parameter `isNative`.
         doTransferOut(admin, reduceAmount, false);
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);
