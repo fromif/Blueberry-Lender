@@ -2,7 +2,7 @@ pragma solidity ^0.5.16;
 
 import "../../contracts/BTokenAdmin.sol";
 
-contract MockCTokenAdmin is BTokenAdmin {
+contract MockBTokenAdmin is BTokenAdmin {
     uint256 public blockTimestamp;
 
     constructor(address payable _admin) public BTokenAdmin(_admin) {}

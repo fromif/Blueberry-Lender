@@ -3,9 +3,9 @@ pragma solidity ^0.5.16;
 import "../BErc20.sol";
 
 /**
- * @title Compound's CErc20Immutable Contract
+ * @title Blueberry's BErc20Immutable Contract
  * @notice BTokens which wrap an EIP-20 underlying and are immutable
- * @author Compound
+ * @author Blueberry
  */
 contract BErc20Immutable is BErc20 {
     /**

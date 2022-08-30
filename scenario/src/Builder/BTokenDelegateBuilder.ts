@@ -1,6 +1,6 @@
 import { Event } from '../Event';
 import { World } from '../World';
-import { BErc20Delegate, BErc20DelegateScenario } from '../Contract/CErc20Delegate';
+import { BErc20Delegate, BErc20DelegateScenario } from '../Contract/BErc20Delegate';
 import { Invokation } from '../Invokation';
 import { getStringV } from '../CoreValue';
 import { StringV } from '../Value';
@@ -8,14 +8,14 @@ import { Arg, Fetcher, getFetcherValue } from '../Command';
 import { storeAndSaveContract } from '../Networks';
 import { getContract, getTestContract } from '../Contract';
 
-const CErc20DelegateContract = getContract('CErc20Delegate');
-const CErc20DelegateScenarioContract = getTestContract('CErc20DelegateScenario');
-const CCapableErc20DelegateContract = getContract('CCapableErc20Delegate');
-const CCollateralCapErc20DelegateScenarioContract = getContract('CCollateralCapErc20DelegateScenario');
-const CWrappedNativeDelegateScenarioContract = getContract('CWrappedNativeDelegateScenario');
+const BErc20DelegateContract = getContract('BErc20Delegate');
+const BErc20DelegateScenarioContract = getTestContract('BErc20DelegateScenario');
+const BCapableErc20DelegateContract = getContract('BCapableErc20Delegate');
+const BCollateralCapErc20DelegateScenarioContract = getContract('BCollateralCapErc20DelegateScenario');
+const BWrappedNativeDelegateScenarioContract = getContract('BWrappedNativeDelegateScenario');
 
-export interface CTokenDelegateData {
-  invokation: Invokation<CErc20Delegate>;
+export interface BTokenDelegateData {
+  invokation: Invokation<BErc20Delegate>;
   name: string;
   contract: string;
   description?: string;
@@ -27,14 +27,14 @@ export async function buildBTokenDelegate(
   params: Event
 ): Promise<{ world: World; bTokenDelegate: BErc20Delegate; delegateData: BTokenDelegateData }> {
   const fetchers = [
-    new Fetcher<{ name: StringV; }, CTokenDelegateData>(
+    new Fetcher<{ name: StringV; }, BTokenDelegateData>(
       `
-        #### CErc20Delegate
+        #### BErc20Delegate
 
-        * "CErc20Delegate name:<String>"
-          * E.g. "CTokenDelegate Deploy CErc20Delegate cDAIDelegate"
+        * "BErc20Delegate name:<String>"
+          * E.g. "BTokenDelegate Deploy BErc20Delegate bDAIDelegate"
       `,
-      'CErc20Delegate',
+      'BErc20Delegate',
       [
         new Arg('name', getStringV)
       ],
@@ -43,22 +43,22 @@ export async function buildBTokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CErc20DelegateContract.deploy<CErc20Delegate>(world, from, []),
+          invokation: await BErc20DelegateContract.deploy<BErc20Delegate>(world, from, []),
           name: name.val,
-          contract: 'CErc20Delegate',
-          description: 'Standard CErc20 Delegate'
+          contract: 'BErc20Delegate',
+          description: 'Standard BErc20 Delegate'
         };
       }
     ),
 
-    new Fetcher<{ name: StringV; }, CTokenDelegateData>(
+    new Fetcher<{ name: StringV; }, BTokenDelegateData>(
       `
-        #### CErc20DelegateScenario
+        #### BErc20DelegateScenario
 
-        * "CErc20DelegateScenario name:<String>" - A CErc20Delegate Scenario for local testing
-          * E.g. "CTokenDelegate Deploy CErc20DelegateScenario cDAIDelegate"
+        * "BErc20DelegateScenario name:<String>" - A BErc20Delegate Scenario for local testing
+          * E.g. "BTokenDelegate Deploy BErc20DelegateScenario bDAIDelegate"
       `,
-      'CErc20DelegateScenario',
+      'BErc20DelegateScenario',
       [
         new Arg('name', getStringV),
       ],
@@ -67,21 +67,21 @@ export async function buildBTokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CErc20DelegateScenarioContract.deploy<CErc20DelegateScenario>(world, from, []),
+          invokation: await BErc20DelegateScenarioContract.deploy<BErc20DelegateScenario>(world, from, []),
           name: name.val,
-          contract: 'CErc20DelegateScenario',
-          description: 'Scenario CErc20 Delegate'
+          contract: 'BErc20DelegateScenario',
+          description: 'Scenario BErc20 Delegate'
         };
       }
     ),
 
-    new Fetcher<{ name: StringV; }, CTokenDelegateData>(
+    new Fetcher<{ name: StringV; }, BTokenDelegateData>(
       `
-        #### CCapableErc20Delegate
-        * "CCapableErc20Delegate name:<String>"
-          * E.g. "CTokenDelegate Deploy CCapableErc20Delegate cLinkDelegate"
+        #### BCapableErc20Delegate
+        * "BCapableErc20Delegate name:<String>"
+          * E.g. "BTokenDelegate Deploy BCapableErc20Delegate bLinkDelegate"
       `,
-      'CCapableErc20Delegate',
+      'BCapableErc20Delegate',
       [
         new Arg('name', getStringV),
       ],
@@ -90,21 +90,21 @@ export async function buildBTokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CCapableErc20DelegateContract.deploy<CErc20Delegate>(world, from, []),
+          invokation: await BCapableErc20DelegateContract.deploy<BErc20Delegate>(world, from, []),
           name: name.val,
-          contract: 'CCapableErc20Delegate',
-          description: 'Capable CErc20 Delegate'
+          contract: 'BCapableErc20Delegate',
+          description: 'Capable BErc20 Delegate'
         };
       }
     ),
 
-    new Fetcher<{ name: StringV; }, CTokenDelegateData>(
+    new Fetcher<{ name: StringV; }, BTokenDelegateData>(
       `
-        #### CCollateralCapErc20DelegateScenario
-        * "CCollateralCapErc20DelegateScenario name:<String>"
-          * E.g. "CTokenDelegate Deploy CCollateralCapErc20DelegateScenario cLinkDelegate"
+        #### BCollateralCapErc20DelegateScenario
+        * "BCollateralCapErc20DelegateScenario name:<String>"
+          * E.g. "BTokenDelegate Deploy BCollateralCapErc20DelegateScenario cLinkDelegate"
       `,
-      'CCollateralCapErc20DelegateScenario',
+      'BCollateralCapErc20DelegateScenario',
       [
         new Arg('name', getStringV),
       ],
@@ -113,21 +113,21 @@ export async function buildBTokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CCollateralCapErc20DelegateScenarioContract.deploy<CErc20Delegate>(world, from, []),
+          invokation: await BCollateralCapErc20DelegateScenarioContract.deploy<BErc20Delegate>(world, from, []),
           name: name.val,
-          contract: 'CCollateralCapErc20DelegateScenario',
-          description: 'Collateral Cap CErc20 Delegate'
+          contract: 'BCollateralCapErc20DelegateScenario',
+          description: 'Collateral Cap BErc20 Delegate'
         };
       }
     ),
 
-    new Fetcher<{ name: StringV; }, CTokenDelegateData>(
+    new Fetcher<{ name: StringV; }, BTokenDelegateData>(
       `
-        #### CWrappedNativeDelegateScenario
-        * "CWrappedNativeDelegateScenario name:<String>"
-          * E.g. "CTokenDelegate Deploy CWrappedNativeDelegateScenario cLinkDelegate"
+        #### BWrappedNativeDelegateScenario
+        * "BWrappedNativeDelegateScenario name:<String>"
+          * E.g. "BTokenDelegate Deploy BWrappedNativeDelegateScenario bLinkDelegate"
       `,
-      'CWrappedNativeDelegateScenario',
+      'BWrappedNativeDelegateScenario',
       [
         new Arg('name', getStringV),
       ],
@@ -136,16 +136,16 @@ export async function buildBTokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CWrappedNativeDelegateScenarioContract.deploy<CErc20Delegate>(world, from, []),
+          invokation: await BWrappedNativeDelegateScenarioContract.deploy<BErc20Delegate>(world, from, []),
           name: name.val,
-          contract: 'CWrappedNativeDelegateScenario',
-          description: 'Wrapped Native CErc20 Delegate'
+          contract: 'BWrappedNativeDelegateScenario',
+          description: 'Wrapped Native BErc20 Delegate'
         };
       }
     )
   ];
 
-  let delegateData = await getFetcherValue<any, CTokenDelegateData>("DeployCToken", fetchers, world, params);
+  let delegateData = await getFetcherValue<any, BTokenDelegateData>("DeployBToken", fetchers, world, params);
   let invokation = delegateData.invokation;
   delete delegateData.invokation;
 
@@ -153,18 +153,18 @@ export async function buildBTokenDelegate(
     throw invokation.error;
   }
 
-  const cTokenDelegate = invokation.value!;
+  const bTokenDelegate = invokation.value!;
 
   world = await storeAndSaveContract(
     world,
-    cTokenDelegate,
+    bTokenDelegate,
     delegateData.name,
     invokation,
     [
       {
-        index: ['CTokenDelegate', delegateData.name],
+        index: ['BTokenDelegate', delegateData.name],
         data: {
-          address: cTokenDelegate._address,
+          address: bTokenDelegate._address,
           contract: delegateData.contract,
           description: delegateData.description
         }
@@ -172,5 +172,5 @@ export async function buildBTokenDelegate(
     ]
   );
 
-  return { world, cTokenDelegate, delegateData };
+  return { world, bTokenDelegate, delegateData };
 }

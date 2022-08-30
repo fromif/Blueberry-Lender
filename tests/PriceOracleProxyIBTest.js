@@ -6,7 +6,7 @@ const {
 const {
   makeComptroller,
   makeToken,
-  makeCToken,
+  makeBToken,
   makePriceOracle,
   makeMockRegistry,
   makeMockReference,
@@ -17,7 +17,7 @@ describe('PriceOracleProxyIB', () => {
   const ethAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
   let root, accounts;
-  let oracle, backingOracle, cUsdc, cOther;
+  let oracle, backingOracle, bUsdc, cOther;
   let registry, reference;
 
   let setBandPrice = async (token, price) => {
@@ -29,15 +29,15 @@ describe('PriceOracleProxyIB', () => {
     await send(registry, "setAnswer", [base, quote, price]);
   }
 
-  let setV1Price = async (cToken, price) => {
-    await send(backingOracle, "setUnderlyingPrice", [cToken._address, price]);
+  let setV1Price = async (bToken, price) => {
+    await send(backingOracle, "setUnderlyingPrice", [bToken._address, price]);
   }
 
   beforeEach(async () => {
     [root, ...accounts] = saddle.accounts;
     const comptroller = await makeComptroller();
-    cUsdc = await makeCToken({comptroller: comptroller, supportMarket: true, underlyingOpts: {decimals: 6}});
-    cOther = await makeCToken({comptroller: comptroller, supportMarket: true});
+    bUsdc = await makeBToken({comptroller: comptroller, supportMarket: true, underlyingOpts: {decimals: 6}});
+    bOther = await makeBToken({comptroller: comptroller, supportMarket: true});
     registry = await makeMockRegistry();
     reference = await makeMockReference();
     backingOracle = await makePriceOracle();
@@ -108,7 +108,7 @@ describe('PriceOracleProxyIB', () => {
     });
 
     it("reverts for token without a price", async () => {
-      let unlistedToken = await makeCToken({comptroller: cUsdc.comptroller});
+      let unlistedToken = await makeBToken({comptroller: bUsdc.comptroller});
 
       await expect(call(oracle, "getUnderlyingPrice", [unlistedToken._address])).rejects.toRevert("revert no price");
     });

@@ -29,16 +29,16 @@ Change Logs
 - Add borrow cap feature, this feature is cherry picked from Compound Finance https://github.com/compound-finance/compound-protocol/pull/65
   * Add a borrow cap check in Comptroller's borrowAllowed hook, disallow further borrowing if an market's totalBorrows reaches its borrow cap
 
-- Add supply cap feature, implemented in Comptroller.sol, CCapableErc20.sol
+- Add supply cap feature, implemented in Comptroller.sol, BCapableErc20.sol
   * Add a supply cap check in Comptroller's mintAllowed hook, disallow further minting (supplying) if an market's cash + totalBorrows reaches its supply cap
-  * CCapableErc20 tracks cash by itself instead of using balanceOf of underlying token. This avoids direct transfering to bToken to manipulate cash.
+  * BCapableErc20 tracks cash by itself instead of using balanceOf of underlying token. This avoids direct transfering to bToken to manipulate cash.
 
-- Add collateral cap feature, implemented in Comptroller.sol, CCollateralCapErc20.sol
+- Add collateral cap feature, implemented in Comptroller.sol, BCollateralCapErc20.sol
   * Add a collateral cap to determine the maximum balance to be considered as collateral. If the cap is reached, users could still supply the asset but it can't be used as collateral.
   * The maximum borrow power of this kind of asset is roughly collateralCap * collateralFactor.
 
-- Add CWrappedNative to replace old CEther
-  * CWrappedNative could support both the native token and the wrapped native token.
+- Add BWrappedNative to replace old BEther
+  * BWrappedNative could support both the native token and the wrapped native token.
   * Users could choose the native token or the wrapped native token when supplying / borrowing / redeeming / repaying.
 
 - Support protocol to protocol borrowing without collateral, this gives whitelisted protocol borrows up to credit limit without collateral.

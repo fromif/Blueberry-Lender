@@ -51,27 +51,27 @@ async function makeComptroller(opts = {}) {
   }
 }
 
-async function makeCToken(opts = {}) {
+async function makeBToken(opts = {}) {
   const {
     root = saddle.account,
-    kind = 'cerc20'
+    kind = 'berc20'
   } = opts || {};
 
   const comptroller = opts.comptroller || await makeComptroller(opts.comptrollerOpts);
   const interestRateModel = opts.interestRateModel || await makeInterestRateModel(opts.interestRateModelOpts);
   const exchangeRate = etherMantissa(dfn(opts.exchangeRate, 1));
   const decimals = etherUnsigned(dfn(opts.decimals, 8));
-  const symbol = opts.symbol || (kind === 'cether' ? 'crETH' : 'cOMG');
-  const name = opts.name || `CToken ${symbol}`;
+  const symbol = opts.symbol || (kind === 'bether' ? 'crETH' : 'bOMG');
+  const name = opts.name || `BToken ${symbol}`;
   const admin = opts.admin || root;
 
-  let cToken, underlying;
-  let cDelegator, cDelegatee;
+  let bToken, underlying;
+  let bDelegator, bDelegatee;
   let version = 0;
 
   switch (kind) {
-    case 'cether':
-      cToken = await deploy('CEtherHarness',
+    case 'bether':
+      bToken = await deploy('BEtherHarness',
         [
           comptroller._address,
           interestRateModel._address,
@@ -83,10 +83,10 @@ async function makeCToken(opts = {}) {
         ])
       break;
 
-    case 'ccapable':
+    case 'bcapable':
       underlying = opts.underlying || await makeToken(opts.underlyingOpts);
-      cDelegatee = await deploy('CCapableErc20Delegate');
-      cDelegator = await deploy('CErc20Delegator',
+      bDelegatee = await deploy('BCapableErc20Delegate');
+      bDelegator = await deploy('BErc20Delegator',
         [
           underlying._address,
           comptroller._address,
@@ -96,17 +96,17 @@ async function makeCToken(opts = {}) {
           symbol,
           decimals,
           admin,
-          cDelegatee._address,
+          bDelegatee._address,
           "0x0"
         ]
       );
-      cToken = await saddle.getContractAt('CCapableErc20Delegate', cDelegator._address);
+      bToken = await saddle.getContractAt('BCapableErc20Delegate', bDelegator._address);
       break;
 
-    case 'ccollateralcap':
+    case 'bcollateralcap':
       underlying = opts.underlying || await makeToken(opts.underlyingOpts);
-      cDelegatee = await deploy('CCollateralCapErc20DelegateHarness');
-      cDelegator = await deploy('CCollateralCapErc20Delegator',
+      bDelegatee = await deploy('BCollateralCapErc20DelegateHarness');
+      bDelegator = await deploy('BCollateralCapErc20Delegator',
         [
           underlying._address,
           comptroller._address,
@@ -116,18 +116,18 @@ async function makeCToken(opts = {}) {
           symbol,
           decimals,
           admin,
-          cDelegatee._address,
+          bDelegatee._address,
           "0x0"
         ]
       );
-      cToken = await saddle.getContractAt('CCollateralCapErc20DelegateHarness', cDelegator._address);
-      version = 1; // ccollateralcap's version is 1
+      bToken = await saddle.getContractAt('BCollateralCapErc20DelegateHarness', bDelegator._address);
+      version = 1; // bcollateralcap's version is 1
       break;
 
-    case 'ccollateralcapnointerest':
+    case 'bcollateralcapnointerest':
       underlying = opts.underlying || await makeToken(opts.underlyingOpts);
-      cDelegatee = await deploy('CCollateralCapErc20NoInterestDelegateHarness');
-      cDelegator = await deploy('CCollateralCapErc20Delegator',
+      bDelegatee = await deploy('BCollateralCapErc20NoInterestDelegateHarness');
+      bDelegator = await deploy('BCollateralCapErc20Delegator',
         [
           underlying._address,
           comptroller._address,
@@ -137,18 +137,18 @@ async function makeCToken(opts = {}) {
           symbol,
           decimals,
           admin,
-          cDelegatee._address,
+          bDelegatee._address,
           "0x0"
         ]
       );
-      cToken = await saddle.getContractAt('CCollateralCapErc20NoInterestDelegateHarness', cDelegator._address);
-      version = 1; // ccollateralcap's version is 1
+      bToken = await saddle.getContractAt('BCollateralCapErc20NoInterestDelegateHarness', cDelegator._address);
+      version = 1; // bcollateralcap's version is 1
       break;
 
-    case 'cwrapped':
+    case 'bwrapped':
       underlying = await makeToken({kind: "wrapped"});
-      cDelegatee = await deploy('CWrappedNativeDelegateHarness');
-      cDelegator = await deploy('CWrappedNativeDelegator',
+      bDelegatee = await deploy('BWrappedNativeDelegateHarness');
+      bDelegator = await deploy('BWrappedNativeDelegator',
         [
           underlying._address,
           comptroller._address,
@@ -158,18 +158,18 @@ async function makeCToken(opts = {}) {
           symbol,
           decimals,
           admin,
-          cDelegatee._address,
+          bDelegatee._address,
           "0x0"
         ]
       );
-      cToken = await saddle.getContractAt('CWrappedNativeDelegateHarness', cDelegator._address); // XXXS at
-      version = 2; // cwrappednative's version is 2
+      bToken = await saddle.getContractAt('BWrappedNativeDelegateHarness', bDelegator._address); // XXXS at
+      version = 2; // bwrappednative's version is 2
       break;
 
-    case 'cevil':
+    case 'bevil':
       underlying = await makeToken({kind: "evil"});
-      cDelegatee = await deploy('CCollaterlaCapErc20CheckRepayDelegateHarness');
-      cDelegator = await deploy('CCollateralCapErc20Delegator',
+      bDelegatee = await deploy('BCollaterlaCapErc20CheckRepayDelegateHarness');
+      bDelegator = await deploy('BCollateralCapErc20Delegator',
         [
           underlying._address,
           comptroller._address,
@@ -179,19 +179,19 @@ async function makeCToken(opts = {}) {
           symbol,
           decimals,
           admin,
-          cDelegatee._address,
+          bDelegatee._address,
           "0x0"
         ]
       );
-      cToken = await saddle.getContractAt('CCollaterlaCapErc20CheckRepayDelegateHarness', cDelegator._address); // XXXS at
-      version = 1; // ccollateralcap's version is 1
+      bToken = await saddle.getContractAt('BCollaterlaCapErc20CheckRepayDelegateHarness', cDelegator._address); // XXXS at
+      version = 1; // bcollateralcap's version is 1
       break;
 
-    case 'cerc20':
+    case 'berc20':
     default:
       underlying = opts.underlying || await makeToken(opts.underlyingOpts);
-      cDelegatee = await deploy('CErc20DelegateHarness');
-      cDelegator = await deploy('CErc20Delegator',
+      bDelegatee = await deploy('BErc20DelegateHarness');
+      bDelegator = await deploy('BErc20Delegator',
         [
           underlying._address,
           comptroller._address,
@@ -201,29 +201,29 @@ async function makeCToken(opts = {}) {
           symbol,
           decimals,
           admin,
-          cDelegatee._address,
+          bDelegatee._address,
           "0x0"
         ]
       );
-      cToken = await saddle.getContractAt('CErc20DelegateHarness', cDelegator._address); // XXXS at
+      bToken = await saddle.getContractAt('BErc20DelegateHarness', cDelegator._address); // XXXS at
       break;
   }
 
   if (opts.supportMarket) {
-    await send(comptroller, '_supportMarket', [cToken._address, version]);
+    await send(comptroller, '_supportMarket', [bToken._address, version]);
   }
 
   if (opts.underlyingPrice) {
     const price = etherMantissa(opts.underlyingPrice);
-    await send(comptroller.priceOracle, 'setUnderlyingPrice', [cToken._address, price]);
+    await send(comptroller.priceOracle, 'setUnderlyingPrice', [bToken._address, price]);
   }
 
   if (opts.collateralFactor) {
     const factor = etherMantissa(opts.collateralFactor);
-    expect(await send(comptroller, '_setCollateralFactor', [cToken._address, factor])).toSucceed();
+    expect(await send(comptroller, '_setCollateralFactor', [bToken._address, factor])).toSucceed();
   }
 
-  return Object.assign(cToken, { name, symbol, underlying, comptroller, interestRateModel });
+  return Object.assign(bToken, { name, symbol, underlying, comptroller, interestRateModel });
 }
 
 async function makeInterestRateModel(opts = {}) {
@@ -276,13 +276,13 @@ async function makeMockReference(opts = {}) {
   return await deploy('MockReference');
 }
 
-async function makeCTokenAdmin(opts = {}) {
+async function makeBTokenAdmin(opts = {}) {
   const {
     root = saddle.account
   } = opts || {};
 
   const admin = opts.admin || root;
-  return await deploy('MockCTokenAdmin', [admin]);
+  return await deploy('MockBTokenAdmin', [admin]);
 }
 
 async function makeToken(opts = {}) {
@@ -361,15 +361,15 @@ async function makeLiquidityMining(opts = {}) {
 }
 
 async function makeEvilAccount(opts = {}) {
-  const crEth = opts.crEth || await makeCToken({kind: 'cether'});
-  const crEvil = opts.crEvil || await makeCToken({kind: 'cevil'});
+  const crEth = opts.crEth || await makeBToken({kind: 'bether'});
+  const crEvil = opts.crEvil || await makeBToken({kind: 'bevil'});
   const borrowAmount = opts.borrowAmount || etherMantissa(1);
   return await deploy('EvilAccount', [crEth._address, crEvil._address, borrowAmount]);
 }
 
 async function makeEvilAccount2(opts = {}) {
-  const crWeth = opts.crWeth || await makeCToken({kind: 'cerc20'});
-  const crEvil = opts.crEvil || await makeCToken({kind: 'cevil'});
+  const crWeth = opts.crWeth || await makeBToken({kind: 'berc20'});
+  const crEvil = opts.crEvil || await makeBToken({kind: 'bevil'});
   const borrower = opts.borrower;
   const repayAmount = opts.repayAmount || etherMantissa(1);
   return await deploy('EvilAccount2', [crWeth._address, crEvil._address, borrower, repayAmount]);
@@ -425,56 +425,56 @@ async function totalCollateralTokens(token) {
   return etherUnsigned(await call(token, 'totalCollateralTokens'));
 }
 
-async function borrowSnapshot(cToken, account) {
-  const { principal, interestIndex } = await call(cToken, 'harnessAccountBorrows', [account]);
+async function borrowSnapshot(bToken, account) {
+  const { principal, interestIndex } = await call(bToken, 'harnessAccountBorrows', [account]);
   return { principal: etherUnsigned(principal), interestIndex: etherUnsigned(interestIndex) };
 }
 
-async function totalBorrows(cToken) {
-  return etherUnsigned(await call(cToken, 'totalBorrows'));
+async function totalBorrows(bToken) {
+  return etherUnsigned(await call(bToken, 'totalBorrows'));
 }
 
-async function totalReserves(cToken) {
-  return etherUnsigned(await call(cToken, 'totalReserves'));
+async function totalReserves(bToken) {
+  return etherUnsigned(await call(bToken, 'totalReserves'));
 }
 
-async function enterMarkets(cTokens, from) {
-  return await send(cTokens[0].comptroller, 'enterMarkets', [cTokens.map(c => c._address)], { from });
+async function enterMarkets(bTokens, from) {
+  return await send(bTokens[0].comptroller, 'enterMarkets', [bTokens.map(c => c._address)], { from });
 }
 
-async function fastForward(cToken, blocks = 5) {
-  return await send(cToken, 'harnessFastForward', [blocks]);
+async function fastForward(bToken, blocks = 5) {
+  return await send(bToken, 'harnessFastForward', [blocks]);
 }
 
-async function setBalance(cToken, account, balance) {
-  return await send(cToken, 'harnessSetBalance', [account, balance]);
+async function setBalance(bToken, account, balance) {
+  return await send(bToken, 'harnessSetBalance', [account, balance]);
 }
 
-async function setEtherBalance(cEther, balance) {
-  const current = await etherBalance(cEther._address);
+async function setEtherBalance(bEther, balance) {
+  const current = await etherBalance(bEther._address);
   const root = saddle.account;
-  expect(await send(cEther, 'harnessDoTransferOut', [root, current])).toSucceed();
-  expect(await send(cEther, 'harnessDoTransferIn', [root, balance], { value: balance })).toSucceed();
+  expect(await send(bEther, 'harnessDoTransferOut', [root, current])).toSucceed();
+  expect(await send(bEther, 'harnessDoTransferIn', [root, balance], { value: balance })).toSucceed();
 }
 
-async function getBalances(cTokens, accounts) {
+async function getBalances(bTokens, accounts) {
   const balances = {};
-  for (let cToken of cTokens) {
-    const cBalances = balances[cToken._address] = {};
+  for (let bToken of bTokens) {
+    const cBalances = balances[bToken._address] = {};
     for (let account of accounts) {
       cBalances[account] = {
         eth: await etherBalance(account),
-        cash: cToken.underlying && await balanceOf(cToken.underlying, account),
-        tokens: await balanceOf(cToken, account),
-        borrows: (await borrowSnapshot(cToken, account)).principal
+        cash: bToken.underlying && await balanceOf(bToken.underlying, account),
+        tokens: await balanceOf(bToken, account),
+        borrows: (await borrowSnapshot(bToken, account)).principal
       };
     }
-    cBalances[cToken._address] = {
-      eth: await etherBalance(cToken._address),
-      cash: await cash(cToken),
-      tokens: await totalSupply(cToken),
-      borrows: await totalBorrows(cToken),
-      reserves: await totalReserves(cToken)
+    cBalances[bToken._address] = {
+      eth: await etherBalance(bToken._address),
+      cash: await cash(bToken),
+      tokens: await totalSupply(bToken),
+      borrows: await totalBorrows(bToken),
+      reserves: await totalReserves(bToken)
     };
   }
   return balances;
@@ -482,78 +482,78 @@ async function getBalances(cTokens, accounts) {
 
 async function adjustBalances(balances, deltas) {
   for (let delta of deltas) {
-    let cToken, account, key, diff;
+    let bToken, account, key, diff;
     if (delta.length == 4) {
-      ([cToken, account, key, diff] = delta);
+      ([bToken, account, key, diff] = delta);
     } else {
-      ([cToken, key, diff] = delta);
-      account = cToken._address;
+      ([bToken, key, diff] = delta);
+      account = bToken._address;
     }
-    balances[cToken._address][account][key] = balances[cToken._address][account][key].plus(diff);
+    balances[bToken._address][account][key] = balances[bToken._address][account][key].plus(diff);
   }
   return balances;
 }
 
 
-async function preApprove(cToken, from, amount, opts = {}) {
+async function preApprove(bToken, from, amount, opts = {}) {
   if (dfn(opts.faucet, true)) {
-    expect(await send(cToken.underlying, 'harnessSetBalance', [from, amount], { from })).toSucceed();
+    expect(await send(bToken.underlying, 'harnessSetBalance', [from, amount], { from })).toSucceed();
   }
 
-  return send(cToken.underlying, 'approve', [cToken._address, amount], { from });
+  return send(bToken.underlying, 'approve', [bToken._address, amount], { from });
 }
 
-async function quickMint(cToken, minter, mintAmount, opts = {}) {
+async function quickMint(bToken, minter, mintAmount, opts = {}) {
   // make sure to accrue interest
-  await fastForward(cToken, 1);
+  await fastForward(bToken, 1);
 
   if (dfn(opts.approve, true)) {
-    expect(await preApprove(cToken, minter, mintAmount, opts)).toSucceed();
+    expect(await preApprove(bToken, minter, mintAmount, opts)).toSucceed();
   }
   if (dfn(opts.exchangeRate)) {
-    expect(await send(cToken, 'harnessSetExchangeRate', [etherMantissa(opts.exchangeRate)])).toSucceed();
+    expect(await send(bToken, 'harnessSetExchangeRate', [etherMantissa(opts.exchangeRate)])).toSucceed();
   }
-  return send(cToken, 'mint', [mintAmount], { from: minter });
+  return send(bToken, 'mint', [mintAmount], { from: minter });
 }
 
 
-async function preSupply(cToken, account, tokens, opts = {}) {
+async function preSupply(bToken, account, tokens, opts = {}) {
   if (dfn(opts.total, true)) {
-    expect(await send(cToken, 'harnessSetTotalSupply', [tokens])).toSucceed();
+    expect(await send(bToken, 'harnessSetTotalSupply', [tokens])).toSucceed();
   }
   if (dfn(opts.totalCollateralTokens)) {
-    expect(await send(cToken, 'harnessSetTotalCollateralTokens', [tokens])).toSucceed();
+    expect(await send(bToken, 'harnessSetTotalCollateralTokens', [tokens])).toSucceed();
   }
-  return send(cToken, 'harnessSetBalance', [account, tokens]);
+  return send(bToken, 'harnessSetBalance', [account, tokens]);
 }
 
-async function quickRedeem(cToken, redeemer, redeemTokens, opts = {}) {
-  await fastForward(cToken, 1);
+async function quickRedeem(bToken, redeemer, redeemTokens, opts = {}) {
+  await fastForward(bToken, 1);
 
   if (dfn(opts.supply, true)) {
-    expect(await preSupply(cToken, redeemer, redeemTokens, opts)).toSucceed();
+    expect(await preSupply(bToken, redeemer, redeemTokens, opts)).toSucceed();
   }
   if (dfn(opts.exchangeRate)) {
-    expect(await send(cToken, 'harnessSetExchangeRate', [etherMantissa(opts.exchangeRate)])).toSucceed();
+    expect(await send(bToken, 'harnessSetExchangeRate', [etherMantissa(opts.exchangeRate)])).toSucceed();
   }
-  return send(cToken, 'redeem', [redeemTokens], { from: redeemer });
+  return send(bToken, 'redeem', [redeemTokens], { from: redeemer });
 }
 
-async function quickRedeemUnderlying(cToken, redeemer, redeemAmount, opts = {}) {
-  await fastForward(cToken, 1);
+async function quickRedeemUnderlying(bToken, redeemer, redeemAmount, opts = {}) {
+  await fastForward(bToken, 1);
 
   if (dfn(opts.exchangeRate)) {
-    expect(await send(cToken, 'harnessSetExchangeRate', [etherMantissa(opts.exchangeRate)])).toSucceed();
+    expect(await send(bToken, 'harnessSetExchangeRate', [etherMantissa(opts.exchangeRate)])).toSucceed();
   }
-  return send(cToken, 'redeemUnderlying', [redeemAmount], { from: redeemer });
+  return send(bToken, 'redeemUnderlying', [redeemAmount], { from: redeemer });
 }
 
-async function setOraclePrice(cToken, price) {
-  return send(cToken.comptroller.priceOracle, 'setUnderlyingPrice', [cToken._address, etherMantissa(price)]);
+async function setOraclePrice(bToken, price) {
+  return send(bToken.comptroller.priceOracle, 'setUnderlyingPrice', [bToken._address, etherMantissa(price)]);
 }
 
-async function setBorrowRate(cToken, rate) {
-  return send(cToken.interestRateModel, 'setBorrowRate', [etherMantissa(rate)]);
+async function setBorrowRate(bToken, rate) {
+  return send(bToken.interestRateModel, 'setBorrowRate', [etherMantissa(rate)]);
 }
 
 async function getBorrowRate(interestRateModel, cash, borrows, reserves) {
@@ -564,17 +564,17 @@ async function getSupplyRate(interestRateModel, cash, borrows, reserves, reserve
   return call(interestRateModel, 'getSupplyRate', [cash, borrows, reserves, reserveFactor].map(etherUnsigned));
 }
 
-async function pretendBorrow(cToken, borrower, accountIndex, marketIndex, principalRaw, blockNumber = 2e7) {
-  await send(cToken, 'harnessSetTotalBorrows', [etherUnsigned(principalRaw)]);
-  await send(cToken, 'harnessSetAccountBorrows', [borrower, etherUnsigned(principalRaw), etherMantissa(accountIndex)]);
-  await send(cToken, 'harnessSetBorrowIndex', [etherMantissa(marketIndex)]);
-  await send(cToken, 'harnessSetAccrualBlockNumber', [etherUnsigned(blockNumber)]);
-  await send(cToken, 'harnessSetBlockNumber', [etherUnsigned(blockNumber)]);
+async function pretendBorrow(bToken, borrower, accountIndex, marketIndex, principalRaw, blockNumber = 2e7) {
+  await send(bToken, 'harnessSetTotalBorrows', [etherUnsigned(principalRaw)]);
+  await send(bToken, 'harnessSetAccountBorrows', [borrower, etherUnsigned(principalRaw), etherMantissa(accountIndex)]);
+  await send(bToken, 'harnessSetBorrowIndex', [etherMantissa(marketIndex)]);
+  await send(bToken, 'harnessSetAccrualBlockNumber', [etherUnsigned(blockNumber)]);
+  await send(bToken, 'harnessSetBlockNumber', [etherUnsigned(blockNumber)]);
 }
 
 module.exports = {
   makeComptroller,
-  makeCToken,
+  makeBToken,
   makeInterestRateModel,
   makePriceOracle,
   makeMockAggregator,
@@ -586,7 +586,7 @@ module.exports = {
   makeLiquidityMining,
   makeEvilAccount,
   makeEvilAccount2,
-  makeCTokenAdmin,
+  makeBTokenAdmin,
 
   balanceOf,
   collateralTokenBalance,

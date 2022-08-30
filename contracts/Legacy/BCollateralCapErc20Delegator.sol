@@ -3,9 +3,9 @@ pragma solidity ^0.5.16;
 import "../BTokenInterfaces.sol";
 
 /**
- * @title Cream's CCollateralCapErc20Delegator Contract
+ * @title Blueberry's BCollateralCapErc20Delegator Contract
  * @notice BTokens which wrap an EIP-20 underlying and delegate to an implementation
- * @author Cream
+ * @author Blueberry
  */
 contract BCollateralCapErc20Delegator is BTokenInterface, BCollateralCapErc20Interface, BDelegatorInterface {
     /**
@@ -69,7 +69,7 @@ contract BCollateralCapErc20Delegator is BTokenInterface, BCollateralCapErc20Int
         bool allowResign,
         bytes memory becomeImplementationData
     ) public {
-        require(msg.sender == admin, "CErc20Delegator::_setImplementation: Caller must be admin");
+        require(msg.sender == admin, "BErc20Delegator::_setImplementation: Caller must be admin");
 
         if (allowResign) {
             delegateToImplementation(abi.encodeWithSignature("_resignImplementation()"));
@@ -581,7 +581,7 @@ contract BCollateralCapErc20Delegator is BTokenInterface, BCollateralCapErc20Int
      * @dev It returns to the external caller whatever the implementation returns or forwards reverts
      */
     function() external payable {
-        require(msg.value == 0, "CErc20Delegator:fallback: cannot send value to fallback");
+        require(msg.value == 0, "BErc20Delegator:fallback: cannot send value to fallback");
 
         // delegate all other functions to current implementation
         delegateAndReturn();

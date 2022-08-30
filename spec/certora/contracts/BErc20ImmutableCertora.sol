@@ -1,12 +1,12 @@
 pragma solidity ^0.5.16;
 
-import "../../../contracts/CErc20Delegator.sol";
+import "../../../contracts/BErc20Immutable.sol";
 import "../../../contracts/EIP20Interface.sol";
 
-import "./CTokenCollateral.sol";
+import "./BTokenCollateral.sol";
 
-contract CErc20DelegatorCertora is CErc20Delegator {
-    CTokenCollateral public otherToken;
+contract BErc20ImmutableCertora is BErc20Immutable {
+    BTokenCollateral public otherToken;
 
     constructor(
         address underlying_,
@@ -16,12 +16,10 @@ contract CErc20DelegatorCertora is CErc20Delegator {
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
-        address payable admin_,
-        address implementation_,
-        bytes memory becomeImplementationData
+        address payable admin_
     )
         public
-        CErc20Delegator(
+        BErc20Immutable(
             underlying_,
             comptroller_,
             interestRateModel_,
@@ -29,14 +27,9 @@ contract CErc20DelegatorCertora is CErc20Delegator {
             name_,
             symbol_,
             decimals_,
-            admin_,
-            implementation_,
-            becomeImplementationData
+            admin_
         )
-    {
-        comptroller; // touch for Certora slot deduction
-        interestRateModel; // touch for Certora slot deduction
-    }
+    {}
 
     function balanceOfInOther(address account) public view returns (uint256) {
         return otherToken.balanceOf(account);
@@ -79,10 +72,8 @@ contract CErc20DelegatorCertora is CErc20Delegator {
     }
 
     function mintFreshPub(address minter, uint256 mintAmount) public returns (uint256) {
-        bytes memory data = delegateToImplementation(
-            abi.encodeWithSignature("_mintFreshPub(address,uint256)", minter, mintAmount)
-        );
-        return abi.decode(data, (uint256));
+        (uint256 error, ) = mintFresh(minter, mintAmount, false);
+        return error;
     }
 
     function redeemFreshPub(
@@ -90,22 +81,11 @@ contract CErc20DelegatorCertora is CErc20Delegator {
         uint256 redeemTokens,
         uint256 redeemUnderlying
     ) public returns (uint256) {
-        bytes memory data = delegateToImplementation(
-            abi.encodeWithSignature(
-                "_redeemFreshPub(address,uint256,uint256)",
-                redeemer,
-                redeemTokens,
-                redeemUnderlying
-            )
-        );
-        return abi.decode(data, (uint256));
+        return redeemFresh(redeemer, redeemTokens, redeemUnderlying, false);
     }
 
     function borrowFreshPub(address payable borrower, uint256 borrowAmount) public returns (uint256) {
-        bytes memory data = delegateToImplementation(
-            abi.encodeWithSignature("_borrowFreshPub(address,uint256)", borrower, borrowAmount)
-        );
-        return abi.decode(data, (uint256));
+        return borrowFresh(borrower, borrowAmount, false);
     }
 
     function repayBorrowFreshPub(
@@ -113,10 +93,8 @@ contract CErc20DelegatorCertora is CErc20Delegator {
         address borrower,
         uint256 repayAmount
     ) public returns (uint256) {
-        bytes memory data = delegateToImplementation(
-            abi.encodeWithSignature("_repayBorrowFreshPub(address,address,uint256)", payer, borrower, repayAmount)
-        );
-        return abi.decode(data, (uint256));
+        (uint256 error, ) = repayBorrowFresh(payer, borrower, repayAmount, false);
+        return error;
     }
 
     function liquidateBorrowFreshPub(
@@ -124,14 +102,7 @@ contract CErc20DelegatorCertora is CErc20Delegator {
         address borrower,
         uint256 repayAmount
     ) public returns (uint256) {
-        bytes memory data = delegateToImplementation(
-            abi.encodeWithSignature(
-                "_liquidateBorrowFreshPub(address,address,uint256)",
-                liquidator,
-                borrower,
-                repayAmount
-            )
-        );
-        return abi.decode(data, (uint256));
+        (uint256 error, ) = liquidateBorrowFresh(liquidator, borrower, repayAmount, otherToken, false);
+        return error;
     }
 }

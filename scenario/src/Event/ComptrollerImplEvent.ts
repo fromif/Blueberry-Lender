@@ -120,7 +120,7 @@ export function comptrollerImplCommands() {
         #### Become
 
         * "ComptrollerImpl <Impl> Become <Rate> <CompMarkets> <OtherMarkets>" - Become the comptroller, if possible.
-          * E.g. "ComptrollerImpl MyImpl Become 0.1e18 [cDAI, cETH, cUSDC]
+          * E.g. "ComptrollerImpl MyImpl Become 0.1e18 [bDAI, bETH, bUSDC]
       `,
       'Become',
       [

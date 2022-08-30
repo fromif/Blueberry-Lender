@@ -1,50 +1,50 @@
 
 Test "Fail to seize calling directly"
     NewComptroller
-    ListedCToken ZRX cZRX initialExchangeRate:1e9
-    ListedCToken BAT cBAT initialExchangeRate:1e9
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 50e18 cZRX
-    Invariant Remains (Erc20 cZRX TokenBalance Geoff) 50e9
+    ListedBToken ZRX bZRX initialExchangeRate:1e9
+    ListedBToken BAT bBAT initialExchangeRate:1e9
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 50e18 bZRX
+    Invariant Remains (Erc20 bZRX TokenBalance Geoff) 50e9
     AllowFailures
-    Seize 1e9 cZRX caller:Geoff liquidator:Geoff borrower:Torrey
-    -- The caller must be from another cToken market, thus this fails
+    Seize 1e9 bZRX caller:Geoff liquidator:Geoff borrower:Torrey
+    -- The caller must be from another bToken market, thus this fails
     Assert Revert "revert market not listed"
 
-Test "Seize tokens with a paused WBTC cToken-- like normal"
+Test "Seize tokens with a paused WBTC bToken-- like normal"
     NewComptroller
-    ListedCToken ZRX cZRX initialExchangeRate:1e9
-    ListedCToken WBTC cWBTC initialExchangeRate:0.1 tokenType:WBTC
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 50e18 cZRX
+    ListedBToken ZRX bZRX initialExchangeRate:1e9
+    ListedBToken WBTC bWBTC initialExchangeRate:0.1 tokenType:WBTC
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 50e18 bZRX
     Erc20 WBTC Pause
-    Invariant Remains (Erc20 cZRX TokenBalance Geoff) 50e9
+    Invariant Remains (Erc20 bZRX TokenBalance Geoff) 50e9
     AllowFailures
-    Seize 1e9 cWBTC caller:Geoff liquidator:Geoff borrower:Torrey
-    -- The caller must be from another cToken market, thus this fails
+    Seize 1e9 bWBTC caller:Geoff liquidator:Geoff borrower:Torrey
+    -- The caller must be from another bToken market, thus this fails
     Assert Revert "revert market not listed"
 
-Test "Not able to seize tokens with a malicious unlisted cToken"
+Test "Not able to seize tokens with a malicious unlisted bToken"
     NewComptroller
-    ListedCToken ZRX cZRX initialExchangeRate:1e9
-    NewCTokenImmutable EVL cEVL initialExchangeRate:1e9 cTokenType:CEvil
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 50e18 cZRX
-    Invariant Remains (Erc20 cZRX TokenBalance Geoff) 50e9
-    Invariant Static (Erc20 cZRX TokenBalance Geoff)
-    Invariant Static (Erc20 cZRX TokenBalance Torrey)
+    ListedBToken ZRX bZRX initialExchangeRate:1e9
+    NewBTokenImmutable EVL cEVL initialExchangeRate:1e9 bTokenType:BEvil
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 50e18 bZRX
+    Invariant Remains (Erc20 bZRX TokenBalance Geoff) 50e9
+    Invariant Static (Erc20 bZRX TokenBalance Geoff)
+    Invariant Static (Erc20 bZRX TokenBalance Torrey)
     AllowFailures
-    EvilSeize cEVL 1e9 cZRX seizer:Geoff seizee:Torrey
-    -- The caller must be from another cToken market, thus this fails
+    EvilSeize cEVL 1e9 bZRX seizer:Geoff seizee:Torrey
+    -- The caller must be from another bToken market, thus this fails
     Assert Revert "revert market not listed"
 
-Test "Able to seize tokens with a malicious listed cToken"
+Test "Able to seize tokens with a malicious listed bToken"
     NewComptroller
-    ListedCToken ZRX cZRX initialExchangeRate:1e9 delegatorType:CErc20DelegatorScenario cTokenType:CErc20DelegateScenario version:0
-    ListedCTokenImmutable EVL cEVL initialExchangeRate:1e9 cTokenType:CEvil
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 50e18 cZRX
-    Assert Equal (Erc20 cZRX TokenBalance Geoff) 50e9
-    Expect Changes (Erc20 cZRX TokenBalance Geoff) -1e9
-    Expect Changes (Erc20 cZRX TokenBalance Torrey) +1e9
-    EvilSeize cEVL 1e9 cZRX seizer:Torrey seizee:Geoff
+    ListedBToken ZRX bZRX initialExchangeRate:1e9 delegatorType:BErc20DelegatorScenario bTokenType:BErc20DelegateScenario version:0
+    ListedBTokenImmutable EVL cEVL initialExchangeRate:1e9 bTokenType:BEvil
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 50e18 bZRX
+    Assert Equal (Erc20 bZRX TokenBalance Geoff) 50e9
+    Expect Changes (Erc20 bZRX TokenBalance Geoff) -1e9
+    Expect Changes (Erc20 bZRX TokenBalance Torrey) +1e9
+    EvilSeize cEVL 1e9 bZRX seizer:Torrey seizee:Geoff

@@ -1,106 +1,106 @@
 
 Test "Borrow some BAT and enters BAT if BAT not entered"
     NewComptroller price:1.0
-    NewCToken ZRX cZRX
-    NewCToken BAT cBAT
-    GiveCToken cBAT 10e18 BAT -- Faucet some bat to borrow
-    Support cZRX collateralFactor:0.5
-    Support cBAT collateralFactor:0.5
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 100e18 cZRX
-    EnterMarkets Geoff cZRX
-    Borrow Geoff 1e18 cBAT
-    Assert Equal (cToken cBAT BorrowBalance Geoff) (Exactly 1e18)
+    NewBToken ZRX bZRX
+    NewBToken BAT bBAT
+    GiveBToken bBAT 10e18 BAT -- Faucet some bat to borrow
+    Support bZRX collateralFactor:0.5
+    Support bBAT collateralFactor:0.5
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 100e18 bZRX
+    EnterMarkets Geoff bZRX
+    Borrow Geoff 1e18 bBAT
+    Assert Equal (bToken bBAT BorrowBalance Geoff) (Exactly 1e18)
     Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 1e18)
-    Assert Equal (Erc20 BAT TokenBalance cBAT) (Exactly 9e18)
+    Assert Equal (Erc20 BAT TokenBalance bBAT) (Exactly 9e18)
     Assert Equal (Comptroller MembershipLength Geoff) (Exactly 2)
-    Assert True (Comptroller CheckMembership Geoff cZRX)
-    Assert True (Comptroller CheckMembership Geoff cBAT)
+    Assert True (Comptroller CheckMembership Geoff bZRX)
+    Assert True (Comptroller CheckMembership Geoff bBAT)
 
 Test "Borrow some BAT fails when no BAT available"
     NewComptroller price:1.0
-    NewCToken ZRX cZRX
-    NewCToken BAT cBAT
-    Support cZRX collateralFactor:0.5
-    Support cBAT collateralFactor:0.5
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 100e18 cZRX
-    EnterMarkets Geoff cZRX cBAT
-    Invariant Static (CToken cZRX ExchangeRateStored)
+    NewBToken ZRX bZRX
+    NewBToken BAT bBAT
+    Support bZRX collateralFactor:0.5
+    Support bBAT collateralFactor:0.5
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 100e18 bZRX
+    EnterMarkets Geoff bZRX bBAT
+    Invariant Static (BToken bZRX ExchangeRateStored)
     AllowFailures
-    Borrow Geoff 1e18 cBAT
+    Borrow Geoff 1e18 bBAT
     Assert Revert "revert insufficient cash"
 
 Test "Borrow fails if market not listed"
     NewComptroller price:1.0
-    NewCToken ZRX cZRX
-    NewCToken BAT cBAT
-    GiveCToken cBAT 10e18 BAT -- Faucet some bat to borrow
-    Support cZRX collateralFactor:0.5
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 100e18 cZRX
-    EnterMarkets Geoff cZRX
+    NewBToken ZRX bZRX
+    NewBToken BAT bBAT
+    GiveBToken bBAT 10e18 BAT -- Faucet some bat to borrow
+    Support bZRX collateralFactor:0.5
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 100e18 bZRX
+    EnterMarkets Geoff bZRX
     AllowFailures
-    Borrow Geoff 1e18 cBAT
+    Borrow Geoff 1e18 bBAT
     Assert Revert "revert market not listed"
 
 Test "Borrow some BAT from Excess Cash"
     Invariant Success
     NewComptroller price:1.0
-    NewCToken ZRX cZRX
-    NewCToken BAT cBAT
-    GiveCToken cBAT 10e18 BAT -- Faucet some bat to borrow
-    Support cZRX collateralFactor:0.5
-    Support cBAT collateralFactor:0.5
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 100e18 cZRX
-    EnterMarkets Geoff cZRX cBAT
-    Borrow Geoff 1e18 cBAT
-    Assert Equal (cToken cBAT BorrowBalance Geoff) (Exactly 1e18)
+    NewBToken ZRX bZRX
+    NewBToken BAT bBAT
+    GiveBToken bBAT 10e18 BAT -- Faucet some bat to borrow
+    Support bZRX collateralFactor:0.5
+    Support bBAT collateralFactor:0.5
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 100e18 bZRX
+    EnterMarkets Geoff bZRX bBAT
+    Borrow Geoff 1e18 bBAT
+    Assert Equal (bToken bBAT BorrowBalance Geoff) (Exactly 1e18)
     Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 1e18)
-    Assert Equal (Erc20 BAT TokenBalance cBAT) (Exactly 9e18)
+    Assert Equal (Erc20 BAT TokenBalance bBAT) (Exactly 9e18)
 
 Test "Borrow some BAT reverts if borrow is paused"
     NewComptroller price:1.0
     Comptroller SetGuardian Coburn
-    NewCToken ZRX cZRX
-    NewCToken BAT cBAT
-    GiveCToken cBAT 10e18 BAT -- Faucet some bat to borrow
-    Support cZRX collateralFactor:0.5
-    Support cBAT collateralFactor:0.5
-    Prep Geoff Some ZRX cZRX
-    Mint Geoff 100e18 cZRX
-    EnterMarkets Geoff cZRX cBAT
-    From Coburn (Comptroller SetGuardianMarketPaused cBAT "Borrow" True)
+    NewBToken ZRX bZRX
+    NewBToken BAT bBAT
+    GiveBToken bBAT 10e18 BAT -- Faucet some bat to borrow
+    Support bZRX collateralFactor:0.5
+    Support bBAT collateralFactor:0.5
+    Prep Geoff Some ZRX bZRX
+    Mint Geoff 100e18 bZRX
+    EnterMarkets Geoff bZRX bBAT
+    From Coburn (Comptroller SetGuardianMarketPaused bBAT "Borrow" True)
     AllowFailures
-    Borrow Geoff 1e18 cBAT
+    Borrow Geoff 1e18 bBAT
     Assert Revert "revert borrow is paused"
-    Assert Equal (cToken cBAT BorrowBalance Geoff) 0
+    Assert Equal (bToken bBAT BorrowBalance Geoff) 0
     Assert Equal (Erc20 BAT TokenBalance Geoff) 0
-    Assert Equal (Erc20 BAT TokenBalance cBAT) (Exactly 10e18)
-    Comptroller SetGuardianMarketPaused cBAT "Borrow" False
-    Borrow Geoff 1e18 cBAT
-    Assert Equal (cToken cBAT BorrowBalance Geoff) (Exactly 1e18)
+    Assert Equal (Erc20 BAT TokenBalance bBAT) (Exactly 10e18)
+    Comptroller SetGuardianMarketPaused bBAT "Borrow" False
+    Borrow Geoff 1e18 bBAT
+    Assert Equal (bToken bBAT BorrowBalance Geoff) (Exactly 1e18)
     Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 1e18)
-    Assert Equal (Erc20 BAT TokenBalance cBAT) (Exactly 9e18)
+    Assert Equal (Erc20 BAT TokenBalance bBAT) (Exactly 9e18)
 
 Test "Borrow some BAT with credit limit"
     NewComptroller price:1.0
-    NewCToken BAT cBAT
-    GiveCToken cBAT 100e18 BAT -- Faucet some bat to borrow
-    Support cBAT collateralFactor:0.5
-    Comptroller SetCreditLimit Geoff cBAT 10e18
+    NewBToken BAT bBAT
+    GiveBToken bBAT 100e18 BAT -- Faucet some bat to borrow
+    Support bBAT collateralFactor:0.5
+    Comptroller SetCreditLimit Geoff bBAT 10e18
     Assert Equal (Comptroller MembershipLength Geoff) (Exactly 0)
-    Borrow Geoff 1e18 cBAT
+    Borrow Geoff 1e18 bBAT
     Assert Equal (Comptroller MembershipLength Geoff) (Exactly 1)
-    Assert True (Comptroller CheckMembership Geoff cBAT)
-    Assert Equal (cToken cBAT BorrowBalance Geoff) (Exactly 1e18)
+    Assert True (Comptroller CheckMembership Geoff bBAT)
+    Assert Equal (bToken bBAT BorrowBalance Geoff) (Exactly 1e18)
     Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 1e18)
-    Assert Equal (Erc20 BAT TokenBalance cBAT) (Exactly 99e18)
-    Borrow Geoff 9e18 cBAT
-    Assert Equal (cToken cBAT BorrowBalance Geoff) (Exactly 10e18)
+    Assert Equal (Erc20 BAT TokenBalance bBAT) (Exactly 99e18)
+    Borrow Geoff 9e18 bBAT
+    Assert Equal (bToken bBAT BorrowBalance Geoff) (Exactly 10e18)
     Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 10e18)
-    Assert Equal (Erc20 BAT TokenBalance cBAT) (Exactly 90e18)
+    Assert Equal (Erc20 BAT TokenBalance bBAT) (Exactly 90e18)
     AllowFailures
-    Borrow Geoff 1e18 cBAT
+    Borrow Geoff 1e18 bBAT
     Assert Revert "revert insufficient credit limit"

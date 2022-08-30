@@ -35,9 +35,9 @@ interface ISushiBar {
 }
 
 /**
- * @title Cream's CSushiLP's Contract
+ * @title Blueberry's CSushiLP's Contract
  * @notice BToken which wraps Sushi's LP token
- * @author Cream
+ * @author Blueberry
  */
 contract BSLPDelegate is BCapableErc20Delegate {
     /**

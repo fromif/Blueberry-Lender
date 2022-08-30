@@ -4,23 +4,23 @@ const {
 } = require('./Utils/Ethereum');
 
 const {
-  makeCToken,
+  makeBToken,
   pretendBorrow,
   borrowSnapshot
 } = require('./Utils/Compound');
 
 describe('Maximillion', () => {
   let root, borrower;
-  let maximillion, cWrapped;
+  let maximillion, bWrapped;
   beforeEach(async () => {
     [root, borrower] = saddle.accounts;
-    cWrapped = await makeCToken({kind: "cwrapped", supportMarket: true});
-    maximillion = await deploy('Maximillion', [cWrapped._address]);
+    bWrapped = await makeBToken({kind: "bwrapped", supportMarket: true});
+    maximillion = await deploy('Maximillion', [bWrapped._address]);
   });
 
   describe("constructor", () => {
-    it("sets address of cWrapped", async () => {
-      expect(await call(maximillion, "cWrappedNative")).toEqual(cWrapped._address);
+    it("sets address of bWrapped", async () => {
+      expect(await call(maximillion, "bWrappedNative")).toEqual(bWrapped._address);
     });
   });
 
@@ -35,24 +35,24 @@ describe('Maximillion', () => {
     });
 
     it("repays part of a borrow", async () => {
-      await pretendBorrow(cWrapped, borrower, 1, 1, 150);
+      await pretendBorrow(bWrapped, borrower, 1, 1, 150);
       const beforeBalance = await etherBalance(root);
       const result = await send(maximillion, "repayBehalf", [borrower], {value: 100});
       const gasCost = await etherGasCost(result);
       const afterBalance = await etherBalance(root);
-      const afterBorrowSnap = await borrowSnapshot(cWrapped, borrower);
+      const afterBorrowSnap = await borrowSnapshot(bWrapped, borrower);
       expect(result).toSucceed();
       expect(afterBalance).toEqualNumber(beforeBalance.minus(gasCost).minus(100));
       expect(afterBorrowSnap.principal).toEqualNumber(50);
     });
 
     it("repays a full borrow and refunds the rest", async () => {
-      await pretendBorrow(cWrapped, borrower, 1, 1, 90);
+      await pretendBorrow(bWrapped, borrower, 1, 1, 90);
       const beforeBalance = await etherBalance(root);
       const result = await send(maximillion, "repayBehalf", [borrower], {value: 100});
       const gasCost = await etherGasCost(result);
       const afterBalance = await etherBalance(root);
-      const afterBorrowSnap = await borrowSnapshot(cWrapped, borrower);
+      const afterBorrowSnap = await borrowSnapshot(bWrapped, borrower);
       expect(result).toSucceed();
       expect(afterBalance).toEqualNumber(beforeBalance.minus(gasCost).minus(90));
       expect(afterBorrowSnap.principal).toEqualNumber(0);

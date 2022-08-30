@@ -55,7 +55,7 @@ export function priceOracleProxyCommands() {
     new Command<{params: EventV}>(`
         #### Deploy
         * "Deploy ...params" - Generates a new price oracle proxy
-          * E.g. "PriceOracleProxy Deploy (Unitroller Address) (PriceOracle Address) (cEther Address)"
+          * E.g. "PriceOracleProxy Deploy (Unitroller Address) (PriceOracle Address) (bEther Address)"
       `,
       "Deploy",
       [

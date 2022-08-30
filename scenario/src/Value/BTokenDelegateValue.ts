@@ -37,7 +37,7 @@ export function bTokenDelegateFetchers() {
       `
         #### Address
 
-        * "CTokenDelegate <BTokenDelegate> Address" - Returns address of BTokenDelegate contract
+        * "BTokenDelegate <BTokenDelegate> Address" - Returns address of BTokenDelegate contract
           * E.g. "BTokenDelegate bDaiDelegate Address" - Returns bDaiDelegate's address
       `,
       "Address",

@@ -1,6 +1,6 @@
 import { Event } from '../Event';
 import { World } from '../World';
-import { CErc20Delegator, CErc20DelegatorScenario, CCollateralCapErc20DelegatorScenario, CWrappedNativeDelegatorScenario } from '../Contract/CErc20Delegator';
+import { BErc20Delegator, BErc20DelegatorScenario, BCollateralCapErc20DelegatorScenario, BWrappedNativeDelegatorScenario } from '../Contract/BErc20Delegator';
 import { BToken } from '../Contract/BToken';
 import { Invokation, invoke } from '../Invokation';
 import { getAddressV, getExpNumberV, getNumberV, getStringV } from '../CoreValue';
@@ -9,15 +9,15 @@ import { Arg, Fetcher, getFetcherValue } from '../Command';
 import { storeAndSaveContract } from '../Networks';
 import { getContract, getTestContract } from '../Contract';
 
-const CErc20Contract = getContract('CErc20Immutable');
-const CErc20Delegator = getContract('CErc20Delegator');
-const CErc20DelegatorScenario = getTestContract('CErc20DelegatorScenario');
-const CCollateralCapErc20DelegatorScenario = getContract('CCollateralCapErc20DelegatorScenario');
-const CWrappedNativeDelegatorScenario = getContract('CWrappedNativeDelegatorScenario');
-const CEtherContract = getContract('CEther');
-const CErc20ScenarioContract = getTestContract('CErc20Scenario');
-const CEtherScenarioContract = getTestContract('CEtherScenario');
-const CEvilContract = getTestContract('CEvil');
+const BErc20Contract = getContract('BErc20Immutable');
+const BErc20Delegator = getContract('BErc20Delegator');
+const BErc20DelegatorScenario = getTestContract('BErc20DelegatorScenario');
+const BCollateralCapErc20DelegatorScenario = getContract('BCollateralCapErc20DelegatorScenario');
+const BWrappedNativeDelegatorScenario = getContract('BWrappedNativeDelegatorScenario');
+const BEtherContract = getContract('BEther');
+const BErc20ScenarioContract = getTestContract('BErc20Scenario');
+const BEtherScenarioContract = getTestContract('BEtherScenario');
+const BEvilContract = getTestContract('BEvil');
 
 export interface TokenData {
   invokation: Invokation<BToken>;
@@ -31,11 +31,11 @@ export interface TokenData {
   admin?: string;
 }
 
-export async function buildCToken(
+export async function buildBToken(
   world: World,
   from: string,
   params: Event
-): Promise<{ world: World; cToken: CToken; tokenData: TokenData }> {
+): Promise<{ world: World; bToken: BToken; tokenData: TokenData }> {
   const fetchers = [
     new Fetcher<
       {
@@ -53,12 +53,12 @@ export async function buildCToken(
       TokenData
     >(
     `
-      #### CErc20Delegator
+      #### BErc20Delegator
 
-      * "CErc20Delegator symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - The real deal CToken
-        * E.g. "CToken Deploy CErc20Delegator cDAI \"Compound DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (CToken CDaiDelegate Address) "0x0123434anyByTes314535q" "
+      * "BErc20Delegator symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - The real deal BToken
+        * E.g. "BToken Deploy BErc20Delegator bDAI \"Blueberry DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (BToken BDaiDelegate Address) "0x0123434anyByTes314535q" "
     `,
-      'CErc20Delegator',
+      'BErc20Delegator',
       [
         new Arg('symbol', getStringV),
         new Arg('name', getStringV),
@@ -87,7 +87,7 @@ export async function buildCToken(
         }
       ) => {
         return {
-          invokation: await CErc20Delegator.deploy<CErc20Delegator>(world, from, [
+          invokation: await BErc20Delegator.deploy<BErc20Delegator>(world, from, [
             underlying.val,
             comptroller.val,
             interestRateModel.val,
@@ -103,7 +103,7 @@ export async function buildCToken(
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CErc20Delegator',
+          contract: 'BErc20Delegator',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -126,12 +126,12 @@ export async function buildCToken(
       TokenData
     >(
     `
-      #### CErc20DelegatorScenario
+      #### BErc20DelegatorScenario
 
-      * "CErc20DelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A CToken Scenario for local testing
-        * E.g. "CToken Deploy CErc20DelegatorScenario cDAI \"Compound DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (CToken CDaiDelegate Address) "0x0123434anyByTes314535q" "
+      * "BErc20DelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A BToken Scenario for local testing
+        * E.g. "BToken Deploy BErc20DelegatorScenario bDAI \"Compound DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (BToken BDaiDelegate Address) "0x0123434anyByTes314535q" "
     `,
-      'CErc20DelegatorScenario',
+      'BErc20DelegatorScenario',
       [
         new Arg('symbol', getStringV),
         new Arg('name', getStringV),
@@ -160,7 +160,7 @@ export async function buildCToken(
         }
       ) => {
         return {
-          invokation: await CErc20DelegatorScenario.deploy<CErc20DelegatorScenario>(world, from, [
+          invokation: await BErc20DelegatorScenario.deploy<BErc20DelegatorScenario>(world, from, [
             underlying.val,
             comptroller.val,
             interestRateModel.val,
@@ -176,7 +176,7 @@ export async function buildCToken(
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CErc20DelegatorScenario',
+          contract: 'BErc20DelegatorScenario',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -199,12 +199,12 @@ export async function buildCToken(
       TokenData
     >(
     `
-      #### CCollateralCapErc20DelegatorScenario
+      #### BCollateralCapErc20DelegatorScenario
 
-      * "CCollateralCapErc20DelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A CToken Scenario for local testing
-        * E.g. "CToken Deploy CCollateralCapErc20DelegatorScenario cDAI \"Compound DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (CToken CDaiDelegate Address) "0x0123434anyByTes314535q" "
+      * "BCollateralCapErc20DelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A BToken Scenario for local testing
+        * E.g. "BToken Deploy BCollateralCapErc20DelegatorScenario bDAI \"Blueberry DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (BToken BDaiDelegate Address) "0x0123434anyByTes314535q" "
     `,
-      'CCollateralCapErc20DelegatorScenario',
+      'BCollateralCapErc20DelegatorScenario',
       [
         new Arg('symbol', getStringV),
         new Arg('name', getStringV),
@@ -233,7 +233,7 @@ export async function buildCToken(
         }
       ) => {
         return {
-          invokation: await CCollateralCapErc20DelegatorScenario.deploy<CCollateralCapErc20DelegatorScenario>(world, from, [
+          invokation: await BCollateralCapErc20DelegatorScenario.deploy<BCollateralCapErc20DelegatorScenario>(world, from, [
             underlying.val,
             comptroller.val,
             interestRateModel.val,
@@ -249,7 +249,7 @@ export async function buildCToken(
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CCollateralCapErc20DelegatorScenario',
+          contract: 'BCollateralCapErc20DelegatorScenario',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -272,12 +272,12 @@ export async function buildCToken(
       TokenData
     >(
     `
-      #### CWrappedNativeDelegatorScenario
+      #### BWrappedNativeDelegatorScenario
 
-      * "CWrappedNativeDelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A CToken Scenario for local testing
-        * E.g. "CToken Deploy CWrappedNativeDelegatorScenario cDAI \"Compound DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (CToken CDaiDelegate Address) "0x0123434anyByTes314535q" "
+      * "BWrappedNativeDelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A BToken Scenario for local testing
+        * E.g. "BToken Deploy BWrappedNativeDelegatorScenario bDAI \"Compound DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (BToken BDaiDelegate Address) "0x0123434anyByTes314535q" "
     `,
-      'CWrappedNativeDelegatorScenario',
+      'BWrappedNativeDelegatorScenario',
       [
         new Arg('symbol', getStringV),
         new Arg('name', getStringV),
@@ -306,7 +306,7 @@ export async function buildCToken(
         }
       ) => {
         return {
-          invokation: await CWrappedNativeDelegatorScenario.deploy<CWrappedNativeDelegatorScenario>(world, from, [
+          invokation: await BWrappedNativeDelegatorScenario.deploy<BWrappedNativeDelegatorScenario>(world, from, [
             underlying.val,
             comptroller.val,
             interestRateModel.val,
@@ -322,7 +322,7 @@ export async function buildCToken(
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CWrappedNativeDelegatorScenario',
+          contract: 'BWrappedNativeDelegatorScenario',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -332,8 +332,8 @@ export async function buildCToken(
     new Fetcher<{symbol: StringV, name: StringV, decimals: NumberV, underlying: AddressV, comptroller: AddressV, interestRateModel: AddressV, initialExchangeRate: NumberV, admin: AddressV}, TokenData>(`
         #### Scenario
 
-        * "Scenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A CToken Scenario for local testing
-          * E.g. "CToken Deploy Scenario cZRX \"Compound ZRX\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
+        * "Scenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A BToken Scenario for local testing
+          * E.g. "BToken Deploy Scenario bZRX \"Compound ZRX\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
       `,
       "Scenario",
       [
@@ -348,12 +348,12 @@ export async function buildCToken(
       ],
       async (world, {symbol, name, underlying, comptroller, interestRateModel, initialExchangeRate, decimals, admin}) => {
         return {
-          invokation: await CErc20ScenarioContract.deploy<CToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
+          invokation: await BErc20ScenarioContract.deploy<BToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
           name: name.val,
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CErc20Scenario',
+          contract: 'BErc20Scenario',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -361,12 +361,12 @@ export async function buildCToken(
     ),
 
     new Fetcher<{symbol: StringV, name: StringV, decimals: NumberV, admin: AddressV, comptroller: AddressV, interestRateModel: AddressV, initialExchangeRate: NumberV}, TokenData>(`
-        #### CEtherScenario
+        #### BEtherScenario
 
-        * "CEtherScenario symbol:<String> name:<String> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A CToken Scenario for local testing
-          * E.g. "CToken Deploy CEtherScenario cETH \"Compound Ether\" (Comptroller Address) (InterestRateModel Address) 1.0 8"
+        * "BEtherScenario symbol:<String> name:<String> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A BToken Scenario for local testing
+          * E.g. "BToken Deploy BEtherScenario bETH \"Compound Ether\" (Comptroller Address) (InterestRateModel Address) 1.0 8"
       `,
-      "CEtherScenario",
+      "BEtherScenario",
       [
         new Arg("symbol", getStringV),
         new Arg("name", getStringV),
@@ -378,12 +378,12 @@ export async function buildCToken(
       ],
       async (world, {symbol, name, comptroller, interestRateModel, initialExchangeRate, decimals, admin}) => {
         return {
-          invokation: await CEtherScenarioContract.deploy<CToken>(world, from, [name.val, symbol.val, decimals.val, admin.val, comptroller.val, interestRateModel.val, initialExchangeRate.val]),
+          invokation: await BEtherScenarioContract.deploy<BToken>(world, from, [name.val, symbol.val, decimals.val, admin.val, comptroller.val, interestRateModel.val, initialExchangeRate.val]),
           name: name.val,
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: "",
-          contract: 'CEtherScenario',
+          contract: 'BEtherScenario',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -391,12 +391,12 @@ export async function buildCToken(
     ),
 
     new Fetcher<{symbol: StringV, name: StringV, decimals: NumberV, admin: AddressV, comptroller: AddressV, interestRateModel: AddressV, initialExchangeRate: NumberV}, TokenData>(`
-        #### CEther
+        #### BEther
 
-        * "CEther symbol:<String> name:<String> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A CToken Scenario for local testing
-          * E.g. "CToken Deploy CEther cETH \"Compound Ether\" (Comptroller Address) (InterestRateModel Address) 1.0 8"
+        * "BEther symbol:<String> name:<String> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A BToken Scenario for local testing
+          * E.g. "BToken Deploy BEther bETH \"Compound Ether\" (Comptroller Address) (InterestRateModel Address) 1.0 8"
       `,
-      "CEther",
+      "BEther",
       [
         new Arg("symbol", getStringV),
         new Arg("name", getStringV),
@@ -408,12 +408,12 @@ export async function buildCToken(
       ],
       async (world, {symbol, name, comptroller, interestRateModel, initialExchangeRate, decimals, admin}) => {
         return {
-          invokation: await CEtherContract.deploy<CToken>(world, from, [comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
+          invokation: await BEtherContract.deploy<BToken>(world, from, [comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
           name: name.val,
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: "",
-          contract: 'CEther',
+          contract: 'BEther',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -421,12 +421,12 @@ export async function buildCToken(
     ),
 
     new Fetcher<{symbol: StringV, name: StringV, decimals: NumberV, admin: AddressV, underlying: AddressV, comptroller: AddressV, interestRateModel: AddressV, initialExchangeRate: NumberV}, TokenData>(`
-        #### CErc20
+        #### BErc20
 
-        * "CErc20 symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A official CToken contract
-          * E.g. "CToken Deploy CErc20 cZRX \"Compound ZRX\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
+        * "BErc20 symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A official BToken contract
+          * E.g. "BToken Deploy BErc20 bZRX \"Blueberry ZRX\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
       `,
-      "CErc20",
+      "BErc20",
       [
         new Arg("symbol", getStringV),
         new Arg("name", getStringV),
@@ -440,12 +440,12 @@ export async function buildCToken(
       async (world, {symbol, name, underlying, comptroller, interestRateModel, initialExchangeRate, decimals, admin}) => {
 
         return {
-          invokation: await CErc20Contract.deploy<CToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
+          invokation: await BErc20Contract.deploy<BToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
           name: name.val,
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CErc20',
+          contract: 'BErc20',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -453,12 +453,12 @@ export async function buildCToken(
     ),
 
     new Fetcher<{symbol: StringV, name: StringV, decimals: NumberV, admin: AddressV, underlying: AddressV, comptroller: AddressV, interestRateModel: AddressV, initialExchangeRate: NumberV}, TokenData>(`
-        #### CEvil
+        #### BEvil
 
-        * "CEvil symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A malicious CToken contract
-          * E.g. "CToken Deploy CEvil cEVL \"Compound EVL\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
+        * "BEvil symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A malicious BToken contract
+          * E.g. "BToken Deploy BEvil bEVL \"Compound EVL\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
       `,
-      "CEvil",
+      "BEvil",
       [
         new Arg("symbol", getStringV),
         new Arg("name", getStringV),
@@ -471,12 +471,12 @@ export async function buildCToken(
       ],
       async (world, {symbol, name, underlying, comptroller, interestRateModel, initialExchangeRate, decimals, admin}) => {
         return {
-          invokation: await CEvilContract.deploy<CToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
+          invokation: await BEvilContract.deploy<BToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
           name: name.val,
           symbol: symbol.val,
           decimals: decimals.toNumber(),
           underlying: underlying.val,
-          contract: 'CEvil',
+          contract: 'BEvil',
           initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
           admin: admin.val
         };
@@ -486,8 +486,8 @@ export async function buildCToken(
     new Fetcher<{symbol: StringV, name: StringV, decimals: NumberV, admin: AddressV, underlying: AddressV, comptroller: AddressV, interestRateModel: AddressV, initialExchangeRate: NumberV}, TokenData>(`
         #### Standard
 
-        * "symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A official CToken contract
-          * E.g. "CToken Deploy Standard cZRX \"Compound ZRX\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
+        * "symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address>" - A official BToken contract
+          * E.g. "BToken Deploy Standard bZRX \"Compound ZRX\" (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 8"
       `,
       "Standard",
       [
@@ -504,23 +504,23 @@ export async function buildCToken(
         // Note: we're going to use the scenario contract as the standard deployment on local networks
         if (world.isLocalNetwork()) {
           return {
-            invokation: await CErc20ScenarioContract.deploy<CToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
+            invokation: await BErc20ScenarioContract.deploy<BToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
             name: name.val,
             symbol: symbol.val,
             decimals: decimals.toNumber(),
             underlying: underlying.val,
-            contract: 'CErc20Scenario',
+            contract: 'BErc20Scenario',
             initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
             admin: admin.val
           };
         } else {
           return {
-            invokation: await CErc20Contract.deploy<CToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
+            invokation: await BErc20Contract.deploy<BToken>(world, from, [underlying.val, comptroller.val, interestRateModel.val, initialExchangeRate.val, name.val, symbol.val, decimals.val, admin.val]),
             name: name.val,
             symbol: symbol.val,
             decimals: decimals.toNumber(),
             underlying: underlying.val,
-            contract: 'CErc20Immutable',
+            contract: 'BErc20Immutable',
             initial_exchange_rate_mantissa: initialExchangeRate.encode().toString(),
             admin: admin.val
           };
@@ -530,7 +530,7 @@ export async function buildCToken(
     )
   ];
 
-  let tokenData = await getFetcherValue<any, TokenData>("DeployCToken", fetchers, world, params);
+  let tokenData = await getFetcherValue<any, TokenData>("DeployBToken", fetchers, world, params);
   let invokation = tokenData.invokation;
   delete tokenData.invokation;
 
@@ -538,19 +538,19 @@ export async function buildCToken(
     throw invokation.error;
   }
 
-  const cToken = invokation.value!;
-  tokenData.address = cToken._address;
+  const bToken = invokation.value!;
+  tokenData.address = bToken._address;
 
   world = await storeAndSaveContract(
     world,
-    cToken,
+    bToken,
     tokenData.symbol,
     invokation,
     [
-      { index: ['cTokens', tokenData.symbol], data: tokenData },
+      { index: ['bTokens', tokenData.symbol], data: tokenData },
       { index: ['Tokens', tokenData.symbol], data: tokenData }
     ]
   );
 
-  return {world, cToken, tokenData};
+  return {world, bToken, tokenData};
 }

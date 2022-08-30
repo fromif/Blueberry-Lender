@@ -170,7 +170,7 @@ contract BTokenAdmin is Exponential {
 
     /**
      * @notice Set bToken collateral cap
-     * @dev It will revert if the bToken is not CCollateralCap.
+     * @dev It will revert if the bToken is not BCollateralCap.
      * @param bToken The bToken address
      * @param newCollateralCap The new collateral cap
      */

@@ -166,7 +166,7 @@ export function bTokenFetchers() {
         #### Address
 
         * "BToken <BToken> Address" - Returns address of BToken contract
-          * E.g. "BToken cZRX Address" - Returns cZRX's address
+          * E.g. "BToken bZRX Address" - Returns bZRX's address
       `,
       "Address",
       [new Arg("bToken", getBTokenV)],
@@ -179,7 +179,7 @@ export function bTokenFetchers() {
         #### InterestRateModel
 
         * "BToken <BToken> InterestRateModel" - Returns the interest rate model of BToken contract
-          * E.g. "BToken cZRX InterestRateModel" - Returns cZRX's interest rate model
+          * E.g. "BToken bZRX InterestRateModel" - Returns bZRX's interest rate model
       `,
       "InterestRateModel",
       [new Arg("bToken", getBTokenV)],
@@ -192,7 +192,7 @@ export function bTokenFetchers() {
         #### Admin
 
         * "BToken <BToken> Admin" - Returns the admin of BToken contract
-          * E.g. "BToken cZRX Admin" - Returns cZRX's admin
+          * E.g. "BToken bZRX Admin" - Returns bZRX's admin
       `,
       "Admin",
       [new Arg("bToken", getBTokenV)],
@@ -205,7 +205,7 @@ export function bTokenFetchers() {
         #### PendingAdmin
 
         * "BToken <BToken> PendingAdmin" - Returns the pending admin of BToken contract
-          * E.g. "BToken cZRX PendingAdmin" - Returns cZRX's pending admin
+          * E.g. "BToken bZRX PendingAdmin" - Returns bZRX's pending admin
       `,
       "PendingAdmin",
       [new Arg("bToken", getBTokenV)],
@@ -218,7 +218,7 @@ export function bTokenFetchers() {
         #### Underlying
 
         * "BToken <BToken> Underlying" - Returns the underlying asset (if applicable)
-          * E.g. "BToken cZRX Underlying"
+          * E.g. "BToken bZRX Underlying"
       `,
       "Underlying",
       [new Arg("bToken", getBTokenV)],
@@ -232,7 +232,7 @@ export function bTokenFetchers() {
         #### UnderlyingBalance
 
         * "BToken <BToken> UnderlyingBalance <User>" - Returns a user's underlying balance (based on given exchange rate)
-          * E.g. "BToken cZRX UnderlyingBalance Geoff"
+          * E.g. "BToken bZRX UnderlyingBalance Geoff"
       `,
       "UnderlyingBalance",
       [
@@ -249,7 +249,7 @@ export function bTokenFetchers() {
         #### BorrowBalance
 
         * "BToken <BToken> BorrowBalance <User>" - Returns a user's borrow balance (including interest)
-          * E.g. "BToken cZRX BorrowBalance Geoff"
+          * E.g. "BToken bZRX BorrowBalance Geoff"
       `,
       "BorrowBalance",
       [new Arg("bToken", getBTokenV), new Arg("address", getAddressV)],
@@ -263,7 +263,7 @@ export function bTokenFetchers() {
         #### BorrowBalanceStored
 
         * "BToken <BToken> BorrowBalanceStored <User>" - Returns a user's borrow balance (without specifically re-accruing interest)
-          * E.g. "BToken cZRX BorrowBalanceStored Geoff"
+          * E.g. "BToken bZRX BorrowBalanceStored Geoff"
       `,
       "BorrowBalanceStored",
       [new Arg("bToken", getBTokenV), new Arg("address", getAddressV)],
@@ -277,7 +277,7 @@ export function bTokenFetchers() {
         #### TotalBorrows
 
         * "BToken <BToken> TotalBorrows" - Returns the bToken's total borrow balance
-          * E.g. "BToken cZRX TotalBorrows"
+          * E.g. "BToken bZRX TotalBorrows"
       `,
       "TotalBorrows",
       [new Arg("bToken", getBTokenV)],
@@ -290,7 +290,7 @@ export function bTokenFetchers() {
         #### TotalBorrowsCurrent
 
         * "BToken <BToken> TotalBorrowsCurrent" - Returns the bToken's total borrow balance with interest
-          * E.g. "BToken cZRX TotalBorrowsCurrent"
+          * E.g. "BToken bZRX TotalBorrowsCurrent"
       `,
       "TotalBorrowsCurrent",
       [new Arg("bToken", getBTokenV)],
@@ -303,7 +303,7 @@ export function bTokenFetchers() {
         #### Reserves
 
         * "BToken <BToken> Reserves" - Returns the bToken's total reserves
-          * E.g. "BToken cZRX Reserves"
+          * E.g. "BToken bZRX Reserves"
       `,
       "Reserves",
       [new Arg("bToken", getBTokenV)],
@@ -316,7 +316,7 @@ export function bTokenFetchers() {
         #### ReserveFactor
 
         * "BToken <BToken> ReserveFactor" - Returns reserve factor of BToken contract
-          * E.g. "BToken cZRX ReserveFactor" - Returns cZRX's reserve factor
+          * E.g. "BToken bZRX ReserveFactor" - Returns bZRX's reserve factor
       `,
       "ReserveFactor",
       [new Arg("bToken", getBTokenV)],
@@ -329,7 +329,7 @@ export function bTokenFetchers() {
         #### Comptroller
 
         * "BToken <BToken> Comptroller" - Returns the bToken's comptroller
-          * E.g. "BToken cZRX Comptroller"
+          * E.g. "BToken bZRX Comptroller"
       `,
       "Comptroller",
       [new Arg("bToken", getBTokenV)],
@@ -342,7 +342,7 @@ export function bTokenFetchers() {
         #### ExchangeRateStored
 
         * "BToken <BToken> ExchangeRateStored" - Returns the bToken's exchange rate (based on balances stored)
-          * E.g. "BToken cZRX ExchangeRateStored"
+          * E.g. "BToken bZRX ExchangeRateStored"
       `,
       "ExchangeRateStored",
       [new Arg("bToken", getBTokenV)],
@@ -355,7 +355,7 @@ export function bTokenFetchers() {
         #### ExchangeRate
 
         * "BToken <BToken> ExchangeRate" - Returns the bToken's current exchange rate
-          * E.g. "BToken cZRX ExchangeRate"
+          * E.g. "BToken bZRX ExchangeRate"
       `,
       "ExchangeRate",
       [new Arg("bToken", getBTokenV)],
@@ -368,7 +368,7 @@ export function bTokenFetchers() {
         #### Cash
 
         * "BToken <BToken> Cash" - Returns the bToken's current cash
-          * E.g. "BToken cZRX Cash"
+          * E.g. "BToken bZRX Cash"
       `,
       "Cash",
       [new Arg("bToken", getBTokenV)],
@@ -381,7 +381,7 @@ export function bTokenFetchers() {
         #### InterestRate
 
         * "BToken <BToken> InterestRate" - Returns the bToken's current interest rate
-          * E.g. "BToken cZRX InterestRate"
+          * E.g. "BToken bZRX InterestRate"
       `,
       "InterestRate",
       [new Arg("bToken", getBTokenV)],
@@ -393,7 +393,7 @@ export function bTokenFetchers() {
         #### CallNum
 
         * "BToken <BToken> Call <signature>" - Simple direct call method, for now with no parameters
-          * E.g. "BToken cZRX Call \"borrowIndex()\""
+          * E.g. "BToken bZRX Call \"borrowIndex()\""
       `,
       "CallNum",
       [new Arg("bToken", getBTokenV), new Arg("signature", getStringV)],
@@ -412,7 +412,7 @@ export function bTokenFetchers() {
         #### Implementation
 
         * "BToken <BToken> Implementation" - Returns the bToken's current implementation
-          * E.g. "BToken cDAI Implementation"
+          * E.g. "BToken bDAI Implementation"
       `,
       "Implementation",
       [new Arg("bToken", getBTokenV)],
@@ -424,7 +424,7 @@ export function bTokenFetchers() {
         #### CollateralBalance
 
         * "BToken <BToken> CollateralBalance <User>" - Returns the user's collateral tokens
-          * E.g. "BToken cDAI CollateralBalance Geoff"
+          * E.g. "BToken bDAI CollateralBalance Geoff"
       `,
       "CollateralBalance",
       [new Arg("bToken", getBTokenV), new Arg("address", getAddressV)],
@@ -437,7 +437,7 @@ export function bTokenFetchers() {
         #### TotalCollateralTokens
 
         * "BToken <BToken> TotalCollateralTokens" - Returns the total collateral tokens
-          * E.g. "BToken cDAI TotalCollateralTokens"
+          * E.g. "BToken bDAI TotalCollateralTokens"
       `,
       "TotalCollateralTokens",
       [new Arg("bToken", getBTokenV)],

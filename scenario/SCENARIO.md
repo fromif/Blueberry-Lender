@@ -3,7 +3,7 @@
 * `name:<Type>` - Helper to describe arguments with names, not actually input this way
 * `<Bool>` - `True` or `False`
 * `<Number>` - A standard number (e.g. `5` or `6.0` or `10.0e18`)
-* `<BToken>` - The local name for a given bToken when created, e.g. `cZRX`
+* `<BToken>` - The local name for a given bToken when created, e.g. `bZRX`
 * `<User>` - One of: `Admin, Bank, Geoff, Torrey, Robert, Coburn, Jared`
 * `<String>` - A string, may be quoted but does not have to be if a single-word (e.g. `"Mint"` or `Mint`)
 * `<Address>` - TODO
@@ -17,9 +17,9 @@
   * E.g. "History"
   * E.g. "History 10"
 * `Read ...` - Reads given value and prints result
-  * E.g. `Read BToken bBAT ExchangeRateStored` - Returns exchange rate of cBAT
+  * E.g. `Read BToken bBAT ExchangeRateStored` - Returns exchange rate of bBAT
 * `Assert <Assertion>` - Validates given assertion, raising an exception if assertion fails
-  * E.g. `Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 5.0)` - Returns exchange rate of cBAT
+  * E.g. `Assert Equal (Erc20 BAT TokenBalance Geoff) (Exactly 5.0)` - Returns exchange rate of bBAT
 * `FastForward n:<Number> Blocks` - For `BTokenScenario`, moves the block number forward n blocks. Note: in `BTokenScenario` the current block number is mocked (starting at 100000). Thus, this is the only way for the protocol to see a higher block number (for accruing interest).
   * E.g. `FastForward 5 Blocks` - Move block number forward 5 blocks.
 * `Inspect` - Prints debugging information about the world
@@ -32,13 +32,13 @@
 * `Comptroller <ComptrollerEvent>` - Runs given Comptroller event
   * E.g. `Comptroller _setReserveFactor 0.5`
 * `BToken <BTokenEvent>` - Runs given BToken event
-  * E.g. `BToken cZRX Mint 5e18`
+  * E.g. `BToken bZRX Mint 5e18`
 * `Erc20 <Erc20Event>` - Runs given Erc20 event
   * E.g. `Erc20 ZRX Facuet Geoff 5e18`
 * `InterestRateModel ...event` - Runs given interest rate model event
   * E.g. `InterestRateModel Deployed (Fixed 0.5)`
 * `PriceOracle <PriceOracleEvent>` - Runs given Price Oracle event
-  * E.g. `PriceOracle SetPrice cZRX 1.5`
+  * E.g. `PriceOracle SetPrice bZRX 1.5`
 
 ## Comptroller Events
 
@@ -47,46 +47,46 @@
 * `Comptroller SetPaused action:<String> paused:<Bool>` - Pauses or unpaused given bToken function (e.g. Mint)
   * E.g. `Comptroller SetPaused Mint True`
 * `Comptroller SupportMarket <BToken> <Number>` - Adds support in the Comptroller for the given bToken and version
-  * E.g. `Comptroller SupportMarket cZRX 0`
+  * E.g. `Comptroller SupportMarket bZRX 0`
 * `Comptroller EnterMarkets <User> <BToken> ...` - User enters the given markets
-  * E.g. `Comptroller EnterMarkets Geoff cZRX bETH`
+  * E.g. `Comptroller EnterMarkets Geoff bZRX bETH`
 * `BToken <bToken> SetOracle oracle:<Contract>` - Sets the oracle
   * E.g. `Comptroller SetOracle (Fixed 1.5)`
 * `Comptroller SetCollateralFactor <BToken> <Number>` - Sets the collateral factor for given bToken to number
-  * E.g. `Comptroller SetCollateralFactor cZRX 0.1`
+  * E.g. `Comptroller SetCollateralFactor bZRX 0.1`
 * `FastForward n:<Number> Blocks` - Moves the block number forward `n` blocks. Note: in `BTokenScenario` and `ComptrollerScenario` the current block number is mocked (starting at 100000). This is the only way for the protocol to see a higher block number (for accruing interest).
   * E.g. `Comptroller FastForward 5 Blocks` - Move block number forward 5 blocks.
 
 ## bToken Events
 
 * `BToken Deploy name:<BToken> underlying:<Contract> comptroller:<Contract> interestRateModel:<Contract> initialExchangeRate:<Number> decimals:<Number> admin:<Address>` - Generates a new comptroller and sets to world global
-  * E.g. `BToken Deploy cZRX (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 18`
+  * E.g. `BToken Deploy bZRX (Erc20 ZRX Address) (Comptroller Address) (InterestRateModel Address) 1.0 18`
 * `BToken <BToken> AccrueInterest` - Accrues interest for given token
-  * E.g. `BToken cZRX AccrueInterest`
+  * E.g. `BToken bZRX AccrueInterest`
 * `BToken <BToken> Mint <User> amount:<Number>` - Mints the given amount of bToken as specified user
-  * E.g. `BToken cZRX Mint Geoff 1.0`
+  * E.g. `BToken bZRX Mint Geoff 1.0`
 * `BToken <BToken> Redeem <User> amount:<Number>` - Redeems the given amount of bToken as specified user
-      * E.g. `BToken cZRX Redeem Geoff 1.0e18`
+      * E.g. `BToken bZRX Redeem Geoff 1.0e18`
 * `BToken <BToken> Borrow <User> amount:<Number>` - Borrows the given amount of this bToken as specified user
-      * E.g. `BToken cZRX Borrow Geoff 1.0e18`
+      * E.g. `BToken bZRX Borrow Geoff 1.0e18`
 * `BToken <BToken> ReduceReserves amount:<Number>` - Reduces the reserves of the bToken
-      * E.g. `BToken cZRX ReduceReserves 1.0e18`
+      * E.g. `BToken bZRX ReduceReserves 1.0e18`
 * `BToken <BToken> SetReserveFactor amount:<Number>` - Sets the reserve factor for the bToken
-      * E.g. `BToken cZRX SetReserveFactor 0.1`
+      * E.g. `BToken bZRX SetReserveFactor 0.1`
 * `BToken <BToken> SetInterestRateModel interestRateModel:<Contract>` - Sets the interest rate model for the given bToken
-  * E.g. `BToken cZRX SetInterestRateModel (Fixed 1.5)`
+  * E.g. `BToken bZRX SetInterestRateModel (Fixed 1.5)`
 * `BToken <BToken> SetComptroller comptroller:<Contract>` - Sets the comptroller for the given bToken
-  * E.g. `BToken cZRX SetComptroller Comptroller`
+  * E.g. `BToken bZRX SetComptroller Comptroller`
 * `BToken <BToken> Mock variable:<String> value:<Number>` - Mocks a given value on bToken. Note: value must be a supported mock and this will only work on a BTokenScenario contract.
-  * E.g. `BToken cZRX Mock totalBorrows 5.0e18`
-  * E.g. `BToken cZRX Mock totalReserves 0.5e18`
+  * E.g. `BToken bZRX Mock totalBorrows 5.0e18`
+  * E.g. `BToken bZRX Mock totalReserves 0.5e18`
 
 ## Erc-20 Events
 
 * `Erc20 Deploy name:<Erc20>` - Generates a new ERC-20 token by name
   * E.g. `Erc20 Deploy ZRX`
 * `Erc20 <Erc20> Approve <User> <Address> <Amount>` - Adds an allowance between user and address
-  * E.g. `Erc20 ZRX Approve Geoff cZRX 1.0e18`
+  * E.g. `Erc20 ZRX Approve Geoff bZRX 1.0e18`
 * `Erc20 <Erc20> Faucet <Address> <Amount>` - Adds an arbitrary balance to given user
   * E.g. `Erc20 ZRX Facuet Geoff 1.0e18`
 
@@ -97,7 +97,7 @@
   * E.g. `PriceOracle Deploy Simple`
   * E.g. `PriceOracle Deploy NotPriceOracle`
 * `SetPrice <BToken> <Amount>` - Sets the per-ether price for the given bToken
-  * E.g. `PriceOracle SetPrice cZRX 1.0`
+  * E.g. `PriceOracle SetPrice bZRX 1.0`
 
 ## Interest Rate Model Events
 
@@ -145,27 +145,27 @@
 * `Comptroller MembershipLength <User>` - Returns a given user's length of membership
   * E.g. `Comptroller MembershipLength Geoff`
 * `Comptroller CheckMembership <User> <BToken>` - Returns one if user is in asset, zero otherwise.
-  * E.g. `Comptroller CheckMembership Geoff cZRX`
+  * E.g. `Comptroller CheckMembership Geoff bZRX`
 * "Comptroller CheckListed <BToken>" - Returns true if market is listed, false otherwise.
-  * E.g. "Comptroller CheckListed cZRX"
+  * E.g. "Comptroller CheckListed bZRX"
 
 ## BToken Values
 * `BToken <BToken> UnderlyingBalance <User>` - Returns a user's underlying balance (based on given exchange rate)
-  * E.g. `BToken cZRX UnderlyingBalance Geoff`
+  * E.g. `BToken bZRX UnderlyingBalance Geoff`
 * `BToken <BToken> BorrowBalance <User>` - Returns a user's borrow balance (including interest)
-  * E.g. `BToken cZRX BorrowBalance Geoff`
+  * E.g. `BToken bZRX BorrowBalance Geoff`
 * `BToken <BToken> TotalBorrowBalance` - Returns the bToken's total borrow balance
-  * E.g. `BToken cZRX TotalBorrowBalance`
+  * E.g. `BToken bZRX TotalBorrowBalance`
 * `BToken <BToken> Reserves` - Returns the bToken's total reserves
-  * E.g. `BToken cZRX Reserves`
+  * E.g. `BToken bZRX Reserves`
 * `BToken <BToken> Comptroller` - Returns the bToken's comptroller
-  * E.g. `BToken cZRX Comptroller`
+  * E.g. `BToken bZRX Comptroller`
 * `BToken <BToken> PriceOracle` - Returns the bToken's price oracle
-  * E.g. `BToken cZRX PriceOracle`
+  * E.g. `BToken bZRX PriceOracle`
 * `BToken <BToken> ExchangeRateStored` - Returns the bToken's exchange rate (based on balances stored)
-  * E.g. `BToken cZRX ExchangeRateStored`
+  * E.g. `BToken bZRX ExchangeRateStored`
 * `BToken <BToken> ExchangeRate` - Returns the bToken's current exchange rate
-  * E.g. `BToken cZRX ExchangeRate`
+  * E.g. `BToken bZRX ExchangeRate`
 
 ## Erc-20 Values
 
@@ -179,11 +179,11 @@
   * E.g. `Erc20 ZRX Decimals` - Returns ZRX's decimals
 * `Erc20 <Erc20> TotalSupply` - Returns the ERC-20 token's total supply
   * E.g. `Erc20 ZRX TotalSupply`
-  * E.g. `Erc20 cZRX TotalSupply`
+  * E.g. `Erc20 bZRX TotalSupply`
 * `Erc20 <Erc20> TokenBalance <Address>` - Returns the ERC-20 token balance of a given address
   * E.g. `Erc20 ZRX TokenBalance Geoff` - Returns a user's ZRX balance
-  * E.g. `Erc20 cZRX TokenBalance Geoff` - Returns a user's cZRX balance
-  * E.g. `Erc20 ZRX TokenBalance cZRX` - Returns cZRX's ZRX balance
+  * E.g. `Erc20 bZRX TokenBalance Geoff` - Returns a user's bZRX balance
+  * E.g. `Erc20 ZRX TokenBalance bZRX` - Returns bZRX's ZRX balance
 * `Erc20 <Erc20> Allowance owner:<Address> spender:<Address>` - Returns the ERC-20 allowance from owner to spender
   * E.g. `Erc20 ZRX Allowance Geoff Torrey` - Returns the ZRX allowance of Geoff to Torrey
   * E.g. `Erc20 bZRX Allowance Geoff Coburn` - Returns the bZRX allowance of Geoff to Coburn
@@ -202,12 +202,12 @@
 
 * `Equal given:<Value> expected:<Value>` - Asserts that given matches expected.
   * E.g. `Assert Equal (Exactly 0) Zero`
-  * E.g. `Assert Equal (BToken cZRX TotalSupply) (Exactly 55)`
-  * E.g. `Assert Equal (BToken cZRX Comptroller) (Comptroller Address)`
+  * E.g. `Assert Equal (BToken bZRX TotalSupply) (Exactly 55)`
+  * E.g. `Assert Equal (BToken bZRX Comptroller) (Comptroller Address)`
 * `True given:<Value>` - Asserts that given is true.
-  * E.g. `Assert True (Comptroller CheckMembership Geoff cETH)`
+  * E.g. `Assert True (Comptroller CheckMembership Geoff bETH)`
 * `False given:<Value>` - Asserts that given is false.
-  * E.g. `Assert False (Comptroller CheckMembership Geoff cETH)`
+  * E.g. `Assert False (Comptroller CheckMembership Geoff bETH)`
 * `Failure error:<String> info:<String> detail:<Number?>` - Asserts that last transaction had a graceful failure with given error, info and detail.
   * E.g. `Assert Failure UNAUTHORIZED SUPPORT_MARKET_OWNER_CHECK`
   * E.g. `Assert Failure MATH_ERROR MINT_CALCULATE_BALANCE 5`

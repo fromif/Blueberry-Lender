@@ -1,9 +1,9 @@
 import { Event } from '../Event';
 import { addAction, describeUser, World } from '../World';
 import { decodeCall, getPastEvents } from '../Contract';
-import { CToken, CTokenScenario } from '../Contract/CToken';
-import { CErc20Delegate } from '../Contract/CErc20Delegate'
-import { CErc20Delegator } from '../Contract/CErc20Delegator'
+import { BToken, BTokenScenario } from '../Contract/BToken';
+import { BErc20Delegate } from '../Contract/BErc20Delegate'
+import { BErc20Delegator } from '../Contract/BErc20Delegator'
 import { invoke, Sendable } from '../Invokation';
 import {
   getAddressV,
@@ -23,363 +23,363 @@ import {
 } from '../Value';
 import { getContract } from '../Contract';
 import { Arg, Command, View, processCommandEvent } from '../Command';
-import { CTokenErrorReporter } from '../ErrorReporter';
-import { getComptroller, getCTokenData } from '../ContractLookup';
-import { buildCToken } from '../Builder/CTokenBuilder';
+import { BTokenErrorReporter } from '../ErrorReporter';
+import { getComptroller, getBTokenData } from '../ContractLookup';
+import { buildBToken } from '../Builder/BTokenBuilder';
 import { verify } from '../Verify';
 import { getLiquidity } from '../Value/ComptrollerValue';
-import { getCTokenV, getCErc20DelegatorV } from '../Value/CTokenValue';
+import { getBTokenV, getBErc20DelegatorV } from '../Value/BTokenValue';
 
 function showTrxValue(world: World): string {
   return new NumberV(world.trxInvokationOpts.get('value')).show();
 }
 
-async function genCToken(world: World, from: string, event: Event): Promise<World> {
-  let { world: nextWorld, cToken, tokenData } = await buildCToken(world, from, event);
+async function genBToken(world: World, from: string, event: Event): Promise<World> {
+  let { world: nextWorld, bToken, tokenData } = await buildBToken(world, from, event);
   world = nextWorld;
 
   world = addAction(
     world,
-    `Added cToken ${tokenData.name} (${tokenData.contract}<decimals=${tokenData.decimals}>) at address ${cToken._address}`,
+    `Added bToken ${tokenData.name} (${tokenData.contract}<decimals=${tokenData.decimals}>) at address ${bToken._address}`,
     tokenData.invokation
   );
 
   return world;
 }
 
-async function accrueInterest(world: World, from: string, cToken: CToken): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.accrueInterest(), from, CTokenErrorReporter);
+async function accrueInterest(world: World, from: string, bToken: BToken): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.accrueInterest(), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: Interest accrued`,
+    `BToken ${bToken.name}: Interest accrued`,
     invokation
   );
 
   return world;
 }
 
-async function mint(world: World, from: string, cToken: CToken, amount: NumberV | NothingV): Promise<World> {
+async function mint(world: World, from: string, bToken: BToken, amount: NumberV | NothingV): Promise<World> {
   let invokation;
   let showAmount;
 
   if (amount instanceof NumberV) {
     showAmount = amount.show();
-    invokation = await invoke(world, cToken.methods.mint(amount.encode()), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.mint(amount.encode()), from, BTokenErrorReporter);
   } else {
     showAmount = showTrxValue(world);
-    invokation = await invoke(world, cToken.methods.mint(), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.mint(), from, BTokenErrorReporter);
   }
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} mints ${showAmount}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} mints ${showAmount}`,
     invokation
   );
 
   return world;
 }
 
-async function mintNative(world: World, from: string, cToken: CToken): Promise<World> {
+async function mintNative(world: World, from: string, bToken: BToken): Promise<World> {
   const showAmount = showTrxValue(world);
-  let invokation = await invoke(world, cToken.methods.mintNative(), from, CTokenErrorReporter);
+  let invokation = await invoke(world, bToken.methods.mintNative(), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} mints ${showAmount}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} mints ${showAmount}`,
     invokation
   );
 
   return world;
 }
 
-async function redeem(world: World, from: string, cToken: CToken, tokens: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.redeem(tokens.encode()), from, CTokenErrorReporter);
+async function redeem(world: World, from: string, bToken: BToken, tokens: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.redeem(tokens.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} redeems ${tokens.show()} tokens`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} redeems ${tokens.show()} tokens`,
     invokation
   );
 
   return world;
 }
 
-async function redeemNative(world: World, from: string, cToken: CToken, tokens: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.redeemNative(tokens.encode()), from, CTokenErrorReporter);
+async function redeemNative(world: World, from: string, bToken: BToken, tokens: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.redeemNative(tokens.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} redeems ${tokens.show()} tokens`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} redeems ${tokens.show()} tokens`,
     invokation
   );
 
   return world;
 }
 
-async function redeemUnderlying(world: World, from: string, cToken: CToken, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.redeemUnderlying(amount.encode()), from, CTokenErrorReporter);
+async function redeemUnderlying(world: World, from: string, bToken: BToken, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.redeemUnderlying(amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} redeems ${amount.show()} underlying`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} redeems ${amount.show()} underlying`,
     invokation
   );
 
   return world;
 }
 
-async function redeemUnderlyingNative(world: World, from: string, cToken: CToken, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.redeemUnderlyingNative(amount.encode()), from, CTokenErrorReporter);
+async function redeemUnderlyingNative(world: World, from: string, bToken: BToken, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.redeemUnderlyingNative(amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} redeems ${amount.show()} underlying`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} redeems ${amount.show()} underlying`,
     invokation
   );
 
   return world;
 }
 
-async function borrow(world: World, from: string, cToken: CToken, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.borrow(amount.encode()), from, CTokenErrorReporter);
+async function borrow(world: World, from: string, bToken: BToken, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.borrow(amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} borrows ${amount.show()}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} borrows ${amount.show()}`,
     invokation
   );
 
   return world;
 }
 
-async function borrowNative(world: World, from: string, cToken: CToken, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.borrowNative(amount.encode()), from, CTokenErrorReporter);
+async function borrowNative(world: World, from: string, bToken: BToken, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.borrowNative(amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} borrows ${amount.show()}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} borrows ${amount.show()}`,
     invokation
   );
 
   return world;
 }
 
-async function repayBorrow(world: World, from: string, cToken: CToken, amount: NumberV | NothingV): Promise<World> {
+async function repayBorrow(world: World, from: string, bToken: BToken, amount: NumberV | NothingV): Promise<World> {
   let invokation;
   let showAmount;
 
   if (amount instanceof NumberV) {
     showAmount = amount.show();
-    invokation = await invoke(world, cToken.methods.repayBorrow(amount.encode()), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.repayBorrow(amount.encode()), from, BTokenErrorReporter);
   } else {
     showAmount = showTrxValue(world);
-    invokation = await invoke(world, cToken.methods.repayBorrow(), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.repayBorrow(), from, BTokenErrorReporter);
   }
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow`,
     invokation
   );
 
   return world;
 }
 
-async function repayBorrowNative(world: World, from: string, cToken: CToken): Promise<World> {
+async function repayBorrowNative(world: World, from: string, bToken: BToken): Promise<World> {
   const showAmount = showTrxValue(world);
-  let invokation = await invoke(world, cToken.methods.repayBorrowNative(), from, CTokenErrorReporter);
+  let invokation = await invoke(world, bToken.methods.repayBorrowNative(), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow`,
     invokation
   );
 
   return world;
 }
 
-async function repayBorrowBehalf(world: World, from: string, behalf: string, cToken: CToken, amount: NumberV | NothingV): Promise<World> {
+async function repayBorrowBehalf(world: World, from: string, behalf: string, bToken: BToken, amount: NumberV | NothingV): Promise<World> {
   let invokation;
   let showAmount;
 
   if (amount instanceof NumberV) {
     showAmount = amount.show();
-    invokation = await invoke(world, cToken.methods.repayBorrowBehalf(behalf, amount.encode()), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.repayBorrowBehalf(behalf, amount.encode()), from, BTokenErrorReporter);
   } else {
     showAmount = showTrxValue(world);
-    invokation = await invoke(world, cToken.methods.repayBorrowBehalf(behalf), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.repayBorrowBehalf(behalf), from, BTokenErrorReporter);
   }
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow on behalf of ${describeUser(world, behalf)}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow on behalf of ${describeUser(world, behalf)}`,
     invokation
   );
 
   return world;
 }
 
-async function repayBorrowBehalfNative(world: World, from: string, behalf: string, cToken: CToken): Promise<World> {
+async function repayBorrowBehalfNative(world: World, from: string, behalf: string, bToken: BToken): Promise<World> {
   const showAmount = showTrxValue(world);
-  let invokation = await invoke(world, cToken.methods.repayBorrowBehalfNative(behalf), from, CTokenErrorReporter);
+  let invokation = await invoke(world, bToken.methods.repayBorrowBehalfNative(behalf), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow on behalf of ${describeUser(world, behalf)}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} repays ${showAmount} of borrow on behalf of ${describeUser(world, behalf)}`,
     invokation
   );
 
   return world;
 }
 
-async function liquidateBorrow(world: World, from: string, cToken: CToken, borrower: string, collateral: CToken, repayAmount: NumberV | NothingV): Promise<World> {
+async function liquidateBorrow(world: World, from: string, bToken: BToken, borrower: string, collateral: BToken, repayAmount: NumberV | NothingV): Promise<World> {
   let invokation;
   let showAmount;
 
   if (repayAmount instanceof NumberV) {
     showAmount = repayAmount.show();
-    invokation = await invoke(world, cToken.methods.liquidateBorrow(borrower, repayAmount.encode(), collateral._address), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.liquidateBorrow(borrower, repayAmount.encode(), collateral._address), from, BTokenErrorReporter);
   } else {
     showAmount = showTrxValue(world);
-    invokation = await invoke(world, cToken.methods.liquidateBorrow(borrower, collateral._address), from, CTokenErrorReporter);
+    invokation = await invoke(world, bToken.methods.liquidateBorrow(borrower, collateral._address), from, BTokenErrorReporter);
   }
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} liquidates ${showAmount} from of ${describeUser(world, borrower)}, seizing ${collateral.name}.`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} liquidates ${showAmount} from of ${describeUser(world, borrower)}, seizing ${collateral.name}.`,
     invokation
   );
 
   return world;
 }
 
-async function seize(world: World, from: string, cToken: CToken, liquidator: string, borrower: string, seizeTokens: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.seize(liquidator, borrower, seizeTokens.encode()), from, CTokenErrorReporter);
+async function seize(world: World, from: string, bToken: BToken, liquidator: string, borrower: string, seizeTokens: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.seize(liquidator, borrower, seizeTokens.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} initiates seizing ${seizeTokens.show()} to ${describeUser(world, liquidator)} from ${describeUser(world, borrower)}.`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} initiates seizing ${seizeTokens.show()} to ${describeUser(world, liquidator)} from ${describeUser(world, borrower)}.`,
     invokation
   );
 
   return world;
 }
 
-async function evilSeize(world: World, from: string, cToken: CToken, treasure: CToken, liquidator: string, borrower: string, seizeTokens: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.evilSeize(treasure._address, liquidator, borrower, seizeTokens.encode()), from, CTokenErrorReporter);
+async function evilSeize(world: World, from: string, bToken: BToken, treasure: BToken, liquidator: string, borrower: string, seizeTokens: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.evilSeize(treasure._address, liquidator, borrower, seizeTokens.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} initiates illegal seizing ${seizeTokens.show()} to ${describeUser(world, liquidator)} from ${describeUser(world, borrower)}.`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} initiates illegal seizing ${seizeTokens.show()} to ${describeUser(world, liquidator)} from ${describeUser(world, borrower)}.`,
     invokation
   );
 
   return world;
 }
 
-async function setPendingAdmin(world: World, from: string, cToken: CToken, newPendingAdmin: string): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._setPendingAdmin(newPendingAdmin), from, CTokenErrorReporter);
+async function setPendingAdmin(world: World, from: string, bToken: BToken, newPendingAdmin: string): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._setPendingAdmin(newPendingAdmin), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} sets pending admin to ${newPendingAdmin}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} sets pending admin to ${newPendingAdmin}`,
     invokation
   );
 
   return world;
 }
 
-async function acceptAdmin(world: World, from: string, cToken: CToken): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._acceptAdmin(), from, CTokenErrorReporter);
+async function acceptAdmin(world: World, from: string, bToken: BToken): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._acceptAdmin(), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} accepts admin`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} accepts admin`,
     invokation
   );
 
   return world;
 }
 
-async function addReserves(world: World, from: string, cToken: CToken, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._addReserves(amount.encode()), from, CTokenErrorReporter);
+async function addReserves(world: World, from: string, bToken: BToken, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._addReserves(amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} adds to reserves by ${amount.show()}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} adds to reserves by ${amount.show()}`,
     invokation
   );
 
   return world;
 }
 
-async function reduceReserves(world: World, from: string, cToken: CToken, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._reduceReserves(amount.encode()), from, CTokenErrorReporter);
+async function reduceReserves(world: World, from: string, bToken: BToken, amount: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._reduceReserves(amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} reduces reserves by ${amount.show()}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} reduces reserves by ${amount.show()}`,
     invokation
   );
 
   return world;
 }
 
-async function setReserveFactor(world: World, from: string, cToken: CToken, reserveFactor: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._setReserveFactor(reserveFactor.encode()), from, CTokenErrorReporter);
+async function setReserveFactor(world: World, from: string, bToken: BToken, reserveFactor: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._setReserveFactor(reserveFactor.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(world, from)} sets reserve factor to ${reserveFactor.show()}`,
+    `BToken ${bToken.name}: ${describeUser(world, from)} sets reserve factor to ${reserveFactor.show()}`,
     invokation
   );
 
   return world;
 }
 
-async function setInterestRateModel(world: World, from: string, cToken: CToken, interestRateModel: string): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._setInterestRateModel(interestRateModel), from, CTokenErrorReporter);
+async function setInterestRateModel(world: World, from: string, bToken: BToken, interestRateModel: string): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._setInterestRateModel(interestRateModel), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `Set interest rate for ${cToken.name} to ${interestRateModel} as ${describeUser(world, from)}`,
+    `Set interest rate for ${bToken.name} to ${interestRateModel} as ${describeUser(world, from)}`,
     invokation
   );
 
   return world;
 }
 
-async function setComptroller(world: World, from: string, cToken: CToken, comptroller: string): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._setComptroller(comptroller), from, CTokenErrorReporter);
+async function setComptroller(world: World, from: string, bToken: BToken, comptroller: string): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._setComptroller(comptroller), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `Set comptroller for ${cToken.name} to ${comptroller} as ${describeUser(world, from)}`,
+    `Set comptroller for ${bToken.name} to ${comptroller} as ${describeUser(world, from)}`,
     invokation
   );
 
   return world;
 }
 
-async function gulp(world: World, from: string, cToken: CToken): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.gulp(), from, CTokenErrorReporter);
+async function gulp(world: World, from: string, bToken: BToken): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.gulp(), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: Gulp`,
+    `BToken ${bToken.name}: Gulp`,
     invokation
   );
 
   return world;
 }
 
-async function setCollateralCap(world: World, from: string, cToken: CToken, cap: NumberV): Promise<World> {
-  let invokation = await invoke(world, cToken.methods._setCollateralCap(cap.encode()), from, CTokenErrorReporter);
+async function setCollateralCap(world: World, from: string, bToken: BToken, cap: NumberV): Promise<World> {
+  let invokation = await invoke(world, bToken.methods._setCollateralCap(cap.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `Set collateral cap for ${cToken.name} to ${cap.show()}`,
+    `Set collateral cap for ${bToken.name} to ${cap.show()}`,
     invokation
   );
 
@@ -389,23 +389,23 @@ async function setCollateralCap(world: World, from: string, cToken: CToken, cap:
 async function becomeImplementation(
   world: World,
   from: string,
-  cToken: CToken,
+  bToken: BToken,
   becomeImplementationData: string
 ): Promise<World> {
 
-  const cErc20Delegate = getContract('CErc20Delegate');
-  const cErc20DelegateContract = await cErc20Delegate.at<CErc20Delegate>(world, cToken._address);
+  const bErc20Delegate = getContract('BErc20Delegate');
+  const bErc20DelegateContract = await bErc20Delegate.at<BErc20Delegate>(world, bToken._address);
 
   let invokation = await invoke(
     world,
-    cErc20DelegateContract.methods._becomeImplementation(becomeImplementationData),
+    bErc20DelegateContract.methods._becomeImplementation(becomeImplementationData),
     from,
-    CTokenErrorReporter
+    BTokenErrorReporter
   );
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(
+    `BToken ${bToken.name}: ${describeUser(
       world,
       from
     )} initiates _becomeImplementation with data:${becomeImplementationData}.`,
@@ -418,22 +418,22 @@ async function becomeImplementation(
 async function resignImplementation(
   world: World,
   from: string,
-  cToken: CToken,
+  bToken: BToken,
 ): Promise<World> {
 
-  const cErc20Delegate = getContract('CErc20Delegate');
-  const cErc20DelegateContract = await cErc20Delegate.at<CErc20Delegate>(world, cToken._address);
+  const bErc20Delegate = getContract('BErc20Delegate');
+  const bErc20DelegateContract = await bErc20Delegate.at<BErc20Delegate>(world, bToken._address);
 
   let invokation = await invoke(
     world,
-    cErc20DelegateContract.methods._resignImplementation(),
+    bErc20DelegateContract.methods._resignImplementation(),
     from,
-    CTokenErrorReporter
+    BTokenErrorReporter
   );
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(
+    `BToken ${bToken.name}: ${describeUser(
       world,
       from
     )} initiates _resignImplementation.`,
@@ -446,25 +446,25 @@ async function resignImplementation(
 async function setImplementation(
   world: World,
   from: string,
-  cToken: CErc20Delegator,
+  bToken: BErc20Delegator,
   implementation: string,
   allowResign: boolean,
   becomeImplementationData: string
 ): Promise<World> {
   let invokation = await invoke(
     world,
-    cToken.methods._setImplementation(
+    bToken.methods._setImplementation(
       implementation,
       allowResign,
       becomeImplementationData
     ),
     from,
-    CTokenErrorReporter
+    BTokenErrorReporter
   );
 
   world = addAction(
     world,
-    `CToken ${cToken.name}: ${describeUser(
+    `BToken ${bToken.name}: ${describeUser(
       world,
       from
     )} initiates setImplementation with implementation:${implementation} allowResign:${allowResign} data:${becomeImplementationData}.`,
@@ -474,55 +474,55 @@ async function setImplementation(
   return world;
 }
 
-async function donate(world: World, from: string, cToken: CToken): Promise<World> {
-  let invokation = await invoke(world, cToken.methods.donate(), from, CTokenErrorReporter);
+async function donate(world: World, from: string, bToken: BToken): Promise<World> {
+  let invokation = await invoke(world, bToken.methods.donate(), from, BTokenErrorReporter);
 
   world = addAction(
     world,
-    `Donate for ${cToken.name} as ${describeUser(world, from)} with value ${showTrxValue(world)}`,
+    `Donate for ${bToken.name} as ${describeUser(world, from)} with value ${showTrxValue(world)}`,
     invokation
   );
 
   return world;
 }
 
-async function setCTokenMock(world: World, from: string, cToken: CTokenScenario, mock: string, value: NumberV): Promise<World> {
+async function setBTokenMock(world: World, from: string, bToken: BTokenScenario, mock: string, value: NumberV): Promise<World> {
   let mockMethod: (number) => Sendable<void>;
 
   switch (mock.toLowerCase()) {
     case "totalborrows":
-      mockMethod = cToken.methods.setTotalBorrows;
+      mockMethod = bToken.methods.setTotalBorrows;
       break;
     case "totalreserves":
-      mockMethod = cToken.methods.setTotalReserves;
+      mockMethod = bToken.methods.setTotalReserves;
       break;
     default:
-      throw new Error(`Mock "${mock}" not defined for cToken`);
+      throw new Error(`Mock "${mock}" not defined for bToken`);
   }
 
   let invokation = await invoke(world, mockMethod(value.encode()), from);
 
   world = addAction(
     world,
-    `Mocked ${mock}=${value.show()} for ${cToken.name}`,
+    `Mocked ${mock}=${value.show()} for ${bToken.name}`,
     invokation
   );
 
   return world;
 }
 
-async function verifyCToken(world: World, cToken: CToken, name: string, contract: string, apiKey: string): Promise<World> {
+async function verifyBToken(world: World, bToken: BToken, name: string, contract: string, apiKey: string): Promise<World> {
   if (world.isLocalNetwork()) {
     world.printer.printLine(`Politely declining to verify on local network: ${world.network}.`);
   } else {
-    await verify(world, apiKey, name, contract, cToken._address);
+    await verify(world, apiKey, name, contract, bToken._address);
   }
 
   return world;
 }
 
-async function printMinters(world: World, cToken: CToken): Promise<World> {
-  let events = await getPastEvents(world, cToken, cToken.name, 'Mint');
+async function printMinters(world: World, bToken: BToken): Promise<World> {
+  let events = await getPastEvents(world, bToken, bToken.name, 'Mint');
   let addresses = events.map((event) => event.returnValues['minter']);
   let uniq = [...new Set(addresses)];
 
@@ -535,8 +535,8 @@ async function printMinters(world: World, cToken: CToken): Promise<World> {
   return world;
 }
 
-async function printBorrowers(world: World, cToken: CToken): Promise<World> {
-  let events = await getPastEvents(world, cToken, cToken.name, 'Borrow');
+async function printBorrowers(world: World, bToken: BToken): Promise<World> {
+  let events = await getPastEvents(world, bToken, bToken.name, 'Borrow');
   let addresses = events.map((event) => event.returnValues['borrower']);
   let uniq = [...new Set(addresses)];
 
@@ -549,10 +549,10 @@ async function printBorrowers(world: World, cToken: CToken): Promise<World> {
   return world;
 }
 
-async function printLiquidity(world: World, cToken: CToken): Promise<World> {
-  let mintEvents = await getPastEvents(world, cToken, cToken.name, 'Mint');
+async function printLiquidity(world: World, bToken: BToken): Promise<World> {
+  let mintEvents = await getPastEvents(world, bToken, bToken.name, 'Mint');
   let mintAddresses = mintEvents.map((event) => event.returnValues['minter']);
-  let borrowEvents = await getPastEvents(world, cToken, cToken.name, 'Borrow');
+  let borrowEvents = await getPastEvents(world, bToken, bToken.name, 'Borrow');
   let borrowAddresses = borrowEvents.map((event) => event.returnValues['borrower']);
   let uniq = [...new Set(mintAddresses.concat(borrowAddresses))];
   let comptroller = await getComptroller(world);
@@ -572,431 +572,431 @@ async function printLiquidity(world: World, cToken: CToken): Promise<World> {
   return world;
 }
 
-export function cTokenCommands() {
+export function bTokenCommands() {
   return [
-    new Command<{ cTokenParams: EventV }>(`
+    new Command<{ bTokenParams: EventV }>(`
         #### Deploy
 
-        * "CToken Deploy ...cTokenParams" - Generates a new CToken
-          * E.g. "CToken cZRX Deploy"
+        * "BToken Deploy ...bTokenParams" - Generates a new BToken
+          * E.g. "BToken bZRX Deploy"
       `,
       "Deploy",
-      [new Arg("cTokenParams", getEventV, { variadic: true })],
-      (world, from, { cTokenParams }) => genCToken(world, from, cTokenParams.val)
+      [new Arg("bTokenParams", getEventV, { variadic: true })],
+      (world, from, { bTokenParams }) => genBToken(world, from, bTokenParams.val)
     ),
-    new View<{ cTokenArg: StringV, apiKey: StringV }>(`
+    new View<{ bTokenArg: StringV, apiKey: StringV }>(`
         #### Verify
 
-        * "CToken <cToken> Verify apiKey:<String>" - Verifies CToken in Etherscan
-          * E.g. "CToken cZRX Verify "myApiKey"
+        * "BToken <bToken> Verify apiKey:<String>" - Verifies BToken in Etherscan
+          * E.g. "BToken bZRX Verify "myApiKey"
       `,
       "Verify",
       [
-        new Arg("cTokenArg", getStringV),
+        new Arg("bTokenArg", getStringV),
         new Arg("apiKey", getStringV)
       ],
-      async (world, { cTokenArg, apiKey }) => {
-        let [cToken, name, data] = await getCTokenData(world, cTokenArg.val);
+      async (world, { bTokenArg, apiKey }) => {
+        let [bToken, name, data] = await getBTokenData(world, bTokenArg.val);
 
-        return await verifyCToken(world, cToken, name, data.get('contract')!, apiKey.val);
+        return await verifyBToken(world, bToken, name, data.get('contract')!, apiKey.val);
       },
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken }>(`
+    new Command<{ bToken: BToken }>(`
         #### AccrueInterest
 
-        * "CToken <cToken> AccrueInterest" - Accrues interest for given token
-          * E.g. "CToken cZRX AccrueInterest"
+        * "BToken <bToken> AccrueInterest" - Accrues interest for given token
+          * E.g. "BToken bZRX AccrueInterest"
       `,
       "AccrueInterest",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, { cToken }) => accrueInterest(world, from, cToken),
+      (world, from, { bToken }) => accrueInterest(world, from, bToken),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV | NothingV }>(`
+    new Command<{ bToken: BToken, amount: NumberV | NothingV }>(`
         #### Mint
 
-        * "CToken <cToken> Mint amount:<Number>" - Mints the given amount of cToken as specified user
-          * E.g. "CToken cZRX Mint 1.0e18"
+        * "BToken <bToken> Mint amount:<Number>" - Mints the given amount of bToken as specified user
+          * E.g. "BToken bZRX Mint 1.0e18"
       `,
       "Mint",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV, { nullable: true })
       ],
-      (world, from, { cToken, amount }) => mint(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => mint(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken }>(`
+    new Command<{ bToken: BToken }>(`
         #### MintNative
 
-        * "CToken <cToken> MintNative" - Mints the given amount of cToken as specified user
-          * E.g. "CToken cWETH MintNative"
+        * "BToken <bToken> MintNative" - Mints the given amount of bToken as specified user
+          * E.g. "BToken bWETH MintNative"
       `,
       "MintNative",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, { cToken }) => mintNative(world, from, cToken),
+      (world, from, { bToken }) => mintNative(world, from, bToken),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, tokens: NumberV }>(`
+    new Command<{ bToken: BToken, tokens: NumberV }>(`
         #### Redeem
 
-        * "CToken <cToken> Redeem tokens:<Number>" - Redeems the given amount of cTokens as specified user
-          * E.g. "CToken cZRX Redeem 1.0e9"
+        * "BToken <bToken> Redeem tokens:<Number>" - Redeems the given amount of bTokens as specified user
+          * E.g. "BToken bZRX Redeem 1.0e9"
       `,
       "Redeem",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("tokens", getNumberV)
       ],
-      (world, from, { cToken, tokens }) => redeem(world, from, cToken, tokens),
+      (world, from, { bToken, tokens }) => redeem(world, from, bToken, tokens),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, tokens: NumberV }>(`
+    new Command<{ bToken: BToken, tokens: NumberV }>(`
         #### RedeemNative
 
-        * "CToken <cToken> RedeemNative tokens:<Number>" - Redeems the given amount of cTokens as specified user
-          * E.g. "CToken cZRX RedeemNative 1.0e9"
+        * "BToken <bToken> RedeemNative tokens:<Number>" - Redeems the given amount of bTokens as specified user
+          * E.g. "BToken bZRX RedeemNative 1.0e9"
       `,
       "RedeemNative",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("tokens", getNumberV)
       ],
-      (world, from, { cToken, tokens }) => redeemNative(world, from, cToken, tokens),
+      (world, from, { bToken, tokens }) => redeemNative(world, from, bToken, tokens),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
         #### RedeemUnderlying
 
-        * "CToken <cToken> RedeemUnderlying amount:<Number>" - Redeems the given amount of underlying as specified user
-          * E.g. "CToken cZRX RedeemUnderlying 1.0e18"
+        * "BToken <bToken> RedeemUnderlying amount:<Number>" - Redeems the given amount of underlying as specified user
+          * E.g. "BToken bZRX RedeemUnderlying 1.0e18"
       `,
       "RedeemUnderlying",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
-      (world, from, { cToken, amount }) => redeemUnderlying(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => redeemUnderlying(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
         #### RedeemUnderlyingNative
 
-        * "CToken <cToken> RedeemUnderlyingNative amount:<Number>" - Redeems the given amount of underlying as specified user
-          * E.g. "CToken cZRX RedeemUnderlyingNative 1.0e18"
+        * "BToken <bToken> RedeemUnderlyingNative amount:<Number>" - Redeems the given amount of underlying as specified user
+          * E.g. "BToken bZRX RedeemUnderlyingNative 1.0e18"
       `,
       "RedeemUnderlyingNative",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
-      (world, from, { cToken, amount }) => redeemUnderlyingNative(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => redeemUnderlyingNative(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
         #### Borrow
 
-        * "CToken <cToken> Borrow amount:<Number>" - Borrows the given amount of this cToken as specified user
-          * E.g. "CToken cZRX Borrow 1.0e18"
+        * "BToken <bToken> Borrow amount:<Number>" - Borrows the given amount of this bToken as specified user
+          * E.g. "BToken bZRX Borrow 1.0e18"
       `,
       "Borrow",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
       // Note: we override from
-      (world, from, { cToken, amount }) => borrow(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => borrow(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
         #### BorrowNative
 
-        * "CToken <cToken> BorrowNative amount:<Number>" - Borrows the given amount of this cToken as specified user
-          * E.g. "CToken cZRX BorrowNative 1.0e18"
+        * "BToken <bToken> BorrowNative amount:<Number>" - Borrows the given amount of this bToken as specified user
+          * E.g. "BToken bZRX BorrowNative 1.0e18"
       `,
       "BorrowNative",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
       // Note: we override from
-      (world, from, { cToken, amount }) => borrowNative(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => borrowNative(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV | NothingV }>(`
+    new Command<{ bToken: BToken, amount: NumberV | NothingV }>(`
         #### RepayBorrow
 
-        * "CToken <cToken> RepayBorrow underlyingAmount:<Number>" - Repays borrow in the given underlying amount as specified user
-          * E.g. "CToken cZRX RepayBorrow 1.0e18"
+        * "BToken <bToken> RepayBorrow underlyingAmount:<Number>" - Repays borrow in the given underlying amount as specified user
+          * E.g. "BToken bZRX RepayBorrow 1.0e18"
       `,
       "RepayBorrow",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV, { nullable: true })
       ],
-      (world, from, { cToken, amount }) => repayBorrow(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => repayBorrow(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV | NothingV }>(`
+    new Command<{ bToken: BToken, amount: NumberV | NothingV }>(`
         #### RepayBorrowNative
 
-        * "CToken <cToken> RepayBorrowNative" - Repays borrow in the given underlying amount as specified user
-          * E.g. "CToken cZRX RepayBorrowNative"
+        * "BToken <bToken> RepayBorrowNative" - Repays borrow in the given underlying amount as specified user
+          * E.g. "BToken bZRX RepayBorrowNative"
       `,
       "RepayBorrowNative",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, { cToken, amount }) => repayBorrowNative(world, from, cToken),
+      (world, from, { bToken, amount }) => repayBorrowNative(world, from, bToken),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, behalf: AddressV, amount: NumberV | NothingV }>(`
+    new Command<{ bToken: BToken, behalf: AddressV, amount: NumberV | NothingV }>(`
         #### RepayBorrowBehalf
-        * "CToken <cToken> RepayBorrowBehalf behalf:<User> underlyingAmount:<Number>" - Repays borrow in the given underlying amount on behalf of another user
-          * E.g. "CToken cZRX RepayBorrowBehalf Geoff 1.0e18"
+        * "BToken <bToken> RepayBorrowBehalf behalf:<User> underlyingAmount:<Number>" - Repays borrow in the given underlying amount on behalf of another user
+          * E.g. "BToken bZRX RepayBorrowBehalf Geoff 1.0e18"
       `,
       "RepayBorrowBehalf",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("behalf", getAddressV),
         new Arg("amount", getNumberV, { nullable: true })
       ],
-      (world, from, { cToken, behalf, amount }) => repayBorrowBehalf(world, from, behalf.val, cToken, amount),
+      (world, from, { bToken, behalf, amount }) => repayBorrowBehalf(world, from, behalf.val, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, behalf: AddressV, amount: NumberV | NothingV }>(`
+    new Command<{ bToken: BToken, behalf: AddressV, amount: NumberV | NothingV }>(`
         #### RepayBorrowBehalfNative
 
-        * "CToken <cToken> RepayBorrowBehalfNative behalf:<User>" - Repays borrow in the given underlying amount on behalf of another user
-          * E.g. "CToken cZRX RepayBorrowBehalfNative Geoff"
+        * "BToken <bToken> RepayBorrowBehalfNative behalf:<User>" - Repays borrow in the given underlying amount on behalf of another user
+          * E.g. "BToken bZRX RepayBorrowBehalfNative Geoff"
       `,
       "RepayBorrowBehalfNative",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("behalf", getAddressV)
       ],
-      (world, from, { cToken, behalf, amount }) => repayBorrowBehalfNative(world, from, behalf.val, cToken),
+      (world, from, { bToken, behalf, amount }) => repayBorrowBehalfNative(world, from, behalf.val, bToken),
       { namePos: 1 }
     ),
-    new Command<{ borrower: AddressV, cToken: CToken, collateral: CToken, repayAmount: NumberV | NothingV }>(`
+    new Command<{ borrower: AddressV, bToken: BToken, collateral: BToken, repayAmount: NumberV | NothingV }>(`
         #### Liquidate
 
-        * "CToken <cToken> Liquidate borrower:<User> cTokenCollateral:<Address> repayAmount:<Number>" - Liquidates repayAmount of given token seizing collateral token
-          * E.g. "CToken cZRX Liquidate Geoff cBAT 1.0e18"
+        * "BToken <bToken> Liquidate borrower:<User> bTokenCollateral:<Address> repayAmount:<Number>" - Liquidates repayAmount of given token seizing collateral token
+          * E.g. "BToken bZRX Liquidate Geoff bBAT 1.0e18"
       `,
       "Liquidate",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("borrower", getAddressV),
-        new Arg("collateral", getCTokenV),
+        new Arg("collateral", getBTokenV),
         new Arg("repayAmount", getNumberV, { nullable: true })
       ],
-      (world, from, { borrower, cToken, collateral, repayAmount }) => liquidateBorrow(world, from, cToken, borrower.val, collateral, repayAmount),
+      (world, from, { borrower, bToken, collateral, repayAmount }) => liquidateBorrow(world, from, bToken, borrower.val, collateral, repayAmount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, liquidator: AddressV, borrower: AddressV, seizeTokens: NumberV }>(`
+    new Command<{ bToken: BToken, liquidator: AddressV, borrower: AddressV, seizeTokens: NumberV }>(`
         #### Seize
 
-        * "CToken <cToken> Seize liquidator:<User> borrower:<User> seizeTokens:<Number>" - Seizes a given number of tokens from a user (to be called from other CToken)
-          * E.g. "CToken cZRX Seize Geoff Torrey 1.0e18"
+        * "BToken <bToken> Seize liquidator:<User> borrower:<User> seizeTokens:<Number>" - Seizes a given number of tokens from a user (to be called from other BToken)
+          * E.g. "BToken bZRX Seize Geoff Torrey 1.0e18"
       `,
       "Seize",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("liquidator", getAddressV),
         new Arg("borrower", getAddressV),
         new Arg("seizeTokens", getNumberV)
       ],
-      (world, from, { cToken, liquidator, borrower, seizeTokens }) => seize(world, from, cToken, liquidator.val, borrower.val, seizeTokens),
+      (world, from, { bToken, liquidator, borrower, seizeTokens }) => seize(world, from, bToken, liquidator.val, borrower.val, seizeTokens),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, treasure: CToken, liquidator: AddressV, borrower: AddressV, seizeTokens: NumberV }>(`
+    new Command<{ bToken: BToken, treasure: BToken, liquidator: AddressV, borrower: AddressV, seizeTokens: NumberV }>(`
         #### EvilSeize
 
-        * "CToken <cToken> EvilSeize treasure:<Token> liquidator:<User> borrower:<User> seizeTokens:<Number>" - Improperly seizes a given number of tokens from a user
-          * E.g. "CToken cEVL EvilSeize cZRX Geoff Torrey 1.0e18"
+        * "BToken <bToken> EvilSeize treasure:<Token> liquidator:<User> borrower:<User> seizeTokens:<Number>" - Improperly seizes a given number of tokens from a user
+          * E.g. "BToken cEVL EvilSeize bZRX Geoff Torrey 1.0e18"
       `,
       "EvilSeize",
       [
-        new Arg("cToken", getCTokenV),
-        new Arg("treasure", getCTokenV),
+        new Arg("bToken", getBTokenV),
+        new Arg("treasure", getBTokenV),
         new Arg("liquidator", getAddressV),
         new Arg("borrower", getAddressV),
         new Arg("seizeTokens", getNumberV)
       ],
-      (world, from, { cToken, treasure, liquidator, borrower, seizeTokens }) => evilSeize(world, from, cToken, treasure, liquidator.val, borrower.val, seizeTokens),
+      (world, from, { bToken, treasure, liquidator, borrower, seizeTokens }) => evilSeize(world, from, bToken, treasure, liquidator.val, borrower.val, seizeTokens),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
         #### ReduceReserves
 
-        * "CToken <cToken> ReduceReserves amount:<Number>" - Reduces the reserves of the cToken
-          * E.g. "CToken cZRX ReduceReserves 1.0e18"
+        * "BToken <bToken> ReduceReserves amount:<Number>" - Reduces the reserves of the bToken
+          * E.g. "BToken bZRX ReduceReserves 1.0e18"
       `,
       "ReduceReserves",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
-      (world, from, { cToken, amount }) => reduceReserves(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => reduceReserves(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
     #### AddReserves
 
-    * "CToken <cToken> AddReserves amount:<Number>" - Adds reserves to the cToken
-      * E.g. "CToken cZRX AddReserves 1.0e18"
+    * "BToken <bToken> AddReserves amount:<Number>" - Adds reserves to the bToken
+      * E.g. "BToken bZRX AddReserves 1.0e18"
   `,
       "AddReserves",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
-      (world, from, { cToken, amount }) => addReserves(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => addReserves(world, from, bToken, amount),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, newPendingAdmin: AddressV }>(`
+    new Command<{ bToken: BToken, newPendingAdmin: AddressV }>(`
         #### SetPendingAdmin
 
-        * "CToken <cToken> SetPendingAdmin newPendingAdmin:<Address>" - Sets the pending admin for the cToken
-          * E.g. "CToken cZRX SetPendingAdmin Geoff"
+        * "BToken <bToken> SetPendingAdmin newPendingAdmin:<Address>" - Sets the pending admin for the bToken
+          * E.g. "BToken bZRX SetPendingAdmin Geoff"
       `,
       "SetPendingAdmin",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("newPendingAdmin", getAddressV)
       ],
-      (world, from, { cToken, newPendingAdmin }) => setPendingAdmin(world, from, cToken, newPendingAdmin.val),
+      (world, from, { bToken, newPendingAdmin }) => setPendingAdmin(world, from, bToken, newPendingAdmin.val),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken }>(`
+    new Command<{ bToken: BToken }>(`
         #### AcceptAdmin
 
-        * "CToken <cToken> AcceptAdmin" - Accepts admin for the cToken
-          * E.g. "From Geoff (CToken cZRX AcceptAdmin)"
+        * "BToken <bToken> AcceptAdmin" - Accepts admin for the bToken
+          * E.g. "From Geoff (BToken bZRX AcceptAdmin)"
       `,
       "AcceptAdmin",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, { cToken }) => acceptAdmin(world, from, cToken),
+      (world, from, { bToken }) => acceptAdmin(world, from, bToken),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, reserveFactor: NumberV }>(`
+    new Command<{ bToken: BToken, reserveFactor: NumberV }>(`
         #### SetReserveFactor
 
-        * "CToken <cToken> SetReserveFactor reserveFactor:<Number>" - Sets the reserve factor for the cToken
-          * E.g. "CToken cZRX SetReserveFactor 0.1"
+        * "BToken <bToken> SetReserveFactor reserveFactor:<Number>" - Sets the reserve factor for the bToken
+          * E.g. "BToken bZRX SetReserveFactor 0.1"
       `,
       "SetReserveFactor",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("reserveFactor", getExpNumberV)
       ],
-      (world, from, { cToken, reserveFactor }) => setReserveFactor(world, from, cToken, reserveFactor),
+      (world, from, { bToken, reserveFactor }) => setReserveFactor(world, from, bToken, reserveFactor),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, interestRateModel: AddressV }>(`
+    new Command<{ bToken: BToken, interestRateModel: AddressV }>(`
         #### SetInterestRateModel
 
-        * "CToken <cToken> SetInterestRateModel interestRateModel:<Contract>" - Sets the interest rate model for the given cToken
-          * E.g. "CToken cZRX SetInterestRateModel (FixedRate 1.5)"
+        * "BToken <bToken> SetInterestRateModel interestRateModel:<Contract>" - Sets the interest rate model for the given bToken
+          * E.g. "BToken bZRX SetInterestRateModel (FixedRate 1.5)"
       `,
       "SetInterestRateModel",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("interestRateModel", getAddressV)
       ],
-      (world, from, { cToken, interestRateModel }) => setInterestRateModel(world, from, cToken, interestRateModel.val),
+      (world, from, { bToken, interestRateModel }) => setInterestRateModel(world, from, bToken, interestRateModel.val),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, comptroller: AddressV }>(`
+    new Command<{ bToken: BToken, comptroller: AddressV }>(`
         #### SetComptroller
 
-        * "CToken <cToken> SetComptroller comptroller:<Contract>" - Sets the comptroller for the given cToken
-          * E.g. "CToken cZRX SetComptroller Comptroller"
+        * "BToken <bToken> SetComptroller comptroller:<Contract>" - Sets the comptroller for the given bToken
+          * E.g. "BToken bZRX SetComptroller Comptroller"
       `,
       "SetComptroller",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("comptroller", getAddressV)
       ],
-      (world, from, { cToken, comptroller }) => setComptroller(world, from, cToken, comptroller.val),
+      (world, from, { bToken, comptroller }) => setComptroller(world, from, bToken, comptroller.val),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken}>(`
+    new Command<{ bToken: BToken}>(`
         #### Gulp
-        * "CToken <cToken> Gulp" - Gulps for the cToken
-          * E.g. "CToken cZRX Gulp"
+        * "BToken <bToken> Gulp" - Gulps for the bToken
+          * E.g. "BToken bZRX Gulp"
       `,
       "Gulp",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, { cToken }) => gulp(world, from, cToken),
+      (world, from, { bToken }) => gulp(world, from, bToken),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, amount: NumberV }>(`
+    new Command<{ bToken: BToken, amount: NumberV }>(`
         #### SetCollateralCap
-        * "CToken <cToken> SetCollateralCap amount:<Number>" - Sets the collateral cap for the given cToken
-          * E.g. "CToken cZRX SetCollateralCap 1e10"
+        * "BToken <bToken> SetCollateralCap amount:<Number>" - Sets the collateral cap for the given bToken
+          * E.g. "BToken bZRX SetCollateralCap 1e10"
       `,
       "SetCollateralCap",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("amount", getNumberV)
       ],
-      (world, from, { cToken, amount }) => setCollateralCap(world, from, cToken, amount),
+      (world, from, { bToken, amount }) => setCollateralCap(world, from, bToken, amount),
       { namePos: 1 }
     ),
     new Command<{
-      cToken: CToken;
+      bToken: BToken;
       becomeImplementationData: StringV;
     }>(
       `
         #### BecomeImplementation
 
-        * "CToken <cToken> BecomeImplementation becomeImplementationData:<String>"
-          * E.g. "CToken cDAI BecomeImplementation "0x01234anyByTeS56789""
+        * "BToken <bToken> BecomeImplementation becomeImplementationData:<String>"
+          * E.g. "BToken bDAI BecomeImplementation "0x01234anyByTeS56789""
       `,
       'BecomeImplementation',
       [
-        new Arg('cToken', getCTokenV),
+        new Arg('bToken', getBTokenV),
         new Arg('becomeImplementationData', getStringV)
       ],
-      (world, from, { cToken, becomeImplementationData }) =>
+      (world, from, { bToken, becomeImplementationData }) =>
         becomeImplementation(
           world,
           from,
-          cToken,
+          bToken,
           becomeImplementationData.val
         ),
       { namePos: 1 }
     ),
-    new Command<{cToken: CToken;}>(
+    new Command<{bToken: BToken;}>(
       `
         #### ResignImplementation
 
-        * "CToken <cToken> ResignImplementation"
-          * E.g. "CToken cDAI ResignImplementation"
+        * "BToken <bToken> ResignImplementation"
+          * E.g. "BToken bDAI ResignImplementation"
       `,
       'ResignImplementation',
-      [new Arg('cToken', getCTokenV)],
-      (world, from, { cToken }) =>
+      [new Arg('bToken', getBTokenV)],
+      (world, from, { bToken }) =>
         resignImplementation(
           world,
           from,
-          cToken
+          bToken
         ),
       { namePos: 1 }
     ),
     new Command<{
-      cToken: CErc20Delegator;
+      bToken: BErc20Delegator;
       implementation: AddressV;
       allowResign: BoolV;
       becomeImplementationData: StringV;
@@ -1004,109 +1004,109 @@ export function cTokenCommands() {
       `
         #### SetImplementation
 
-        * "CToken <cToken> SetImplementation implementation:<Address> allowResign:<Bool> becomeImplementationData:<String>"
-          * E.g. "CToken cDAI SetImplementation (CToken cDAIDelegate Address) True "0x01234anyByTeS56789"
+        * "BToken <bToken> SetImplementation implementation:<Address> allowResign:<Bool> becomeImplementationData:<String>"
+          * E.g. "BToken bDAI SetImplementation (BToken bDAIDelegate Address) True "0x01234anyByTeS56789"
       `,
       'SetImplementation',
       [
-        new Arg('cToken', getCErc20DelegatorV),
+        new Arg('bToken', getBErc20DelegatorV),
         new Arg('implementation', getAddressV),
         new Arg('allowResign', getBoolV),
         new Arg('becomeImplementationData', getStringV)
       ],
-      (world, from, { cToken, implementation, allowResign, becomeImplementationData }) =>
+      (world, from, { bToken, implementation, allowResign, becomeImplementationData }) =>
         setImplementation(
           world,
           from,
-          cToken,
+          bToken,
           implementation.val,
           allowResign.val,
           becomeImplementationData.val
         ),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken }>(`
+    new Command<{ bToken: BToken }>(`
         #### Donate
 
-        * "CToken <cToken> Donate" - Calls the donate (payable no-op) function
-          * E.g. "(Trx Value 5.0e18 (CToken cETH Donate))"
+        * "BToken <bToken> Donate" - Calls the donate (payable no-op) function
+          * E.g. "(Trx Value 5.0e18 (BToken bETH Donate))"
       `,
       "Donate",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, { cToken }) => donate(world, from, cToken),
+      (world, from, { bToken }) => donate(world, from, bToken),
       { namePos: 1 }
     ),
-    new Command<{ cToken: CToken, variable: StringV, value: NumberV }>(`
+    new Command<{ bToken: BToken, variable: StringV, value: NumberV }>(`
         #### Mock
 
-        * "CToken <cToken> Mock variable:<String> value:<Number>" - Mocks a given value on cToken. Note: value must be a supported mock and this will only work on a "CTokenScenario" contract.
-          * E.g. "CToken cZRX Mock totalBorrows 5.0e18"
-          * E.g. "CToken cZRX Mock totalReserves 0.5e18"
+        * "BToken <bToken> Mock variable:<String> value:<Number>" - Mocks a given value on bToken. Note: value must be a supported mock and this will only work on a "BTokenScenario" contract.
+          * E.g. "BToken bZRX Mock totalBorrows 5.0e18"
+          * E.g. "BToken bZRX Mock totalReserves 0.5e18"
       `,
       "Mock",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("variable", getStringV),
         new Arg("value", getNumberV),
       ],
-      (world, from, { cToken, variable, value }) => setCTokenMock(world, from, <CTokenScenario>cToken, variable.val, value),
+      (world, from, { bToken, variable, value }) => setBTokenMock(world, from, <BTokenScenario>bToken, variable.val, value),
       { namePos: 1 }
     ),
-    new View<{ cToken: CToken }>(`
+    new View<{ bToken: BToken }>(`
         #### Minters
 
-        * "CToken <cToken> Minters" - Print address of all minters
+        * "BToken <bToken> Minters" - Print address of all minters
       `,
       "Minters",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, { cToken }) => printMinters(world, cToken),
+      (world, { bToken }) => printMinters(world, bToken),
       { namePos: 1 }
     ),
-    new View<{ cToken: CToken }>(`
+    new View<{ bToken: BToken }>(`
         #### Borrowers
 
-        * "CToken <cToken> Borrowers" - Print address of all borrowers
+        * "BToken <bToken> Borrowers" - Print address of all borrowers
       `,
       "Borrowers",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, { cToken }) => printBorrowers(world, cToken),
+      (world, { bToken }) => printBorrowers(world, bToken),
       { namePos: 1 }
     ),
-    new View<{ cToken: CToken }>(`
+    new View<{ bToken: BToken }>(`
         #### Liquidity
 
-        * "CToken <cToken> Liquidity" - Prints liquidity of all minters or borrowers
+        * "BToken <bToken> Liquidity" - Prints liquidity of all minters or borrowers
       `,
       "Liquidity",
       [
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, { cToken }) => printLiquidity(world, cToken),
+      (world, { bToken }) => printLiquidity(world, bToken),
       { namePos: 1 }
     ),
-    new View<{ cToken: CToken, input: StringV }>(`
+    new View<{ bToken: BToken, input: StringV }>(`
         #### Decode
 
-        * "Decode <cToken> input:<String>" - Prints information about a call to a cToken contract
+        * "Decode <bToken> input:<String>" - Prints information about a call to a bToken contract
       `,
       "Decode",
       [
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("input", getStringV)
 
       ],
-      (world, { cToken, input }) => decodeCall(world, cToken, input.val),
+      (world, { bToken, input }) => decodeCall(world, bToken, input.val),
       { namePos: 1 }
     )
   ];
 }
 
-export async function processCTokenEvent(world: World, event: Event, from: string | null): Promise<World> {
-  return await processCommandEvent<any>("CToken", cTokenCommands(), world, event, from);
+export async function processBTokenEvent(world: World, event: Event, from: string | null): Promise<World> {
+  return await processCommandEvent<any>("BToken", bTokenCommands(), world, event, from);
 }

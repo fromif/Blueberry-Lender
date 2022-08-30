@@ -9,8 +9,8 @@ const {
 const EIP712 = require('../Utils/EIP712');
 
 describe('Comp', () => {
-  const name = 'Cream';
-  const symbol = 'CREAM';
+  const name = 'Blueberry';
+  const symbol = 'BLB';
 
   let root, a1, a2, accounts, chainId;
   let comp;

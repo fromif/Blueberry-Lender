@@ -3,9 +3,9 @@ pragma solidity ^0.5.16;
 import "./BToken.sol";
 
 /**
- * @title Compound's CErc20 Contract
+ * @title Blueberry's BErc20 Contract
  * @notice BTokens which wrap an EIP-20 underlying
- * @author Compound
+ * @author Blueberry
  */
 contract BErc20 is BToken, BErc20Interface {
     /**

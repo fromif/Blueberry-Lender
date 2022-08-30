@@ -39,10 +39,10 @@ function sleep(timeout) {
     return printUsage();
   }
 
-  console.log(`Deploying cToken with ${JSON.stringify(conf)}`);
+  console.log(`Deploying bToken with ${JSON.stringify(conf)}`);
 
   let deployArgs = [conf.underlying, conf.comptroller, conf.interestRateModel, conf.initialExchangeRateMantissa.toString(), conf.name, conf.symbol, conf.decimals, conf.admin];
-  let contract = await saddle.deploy('CErc20Immutable', deployArgs);
+  let contract = await saddle.deploy('BErc20Immutable', deployArgs);
 
   console.log(`Deployed contract to ${contract._address}`);
 
@@ -56,7 +56,7 @@ function sleep(timeout) {
     await sleep(30000); // Give Etherscan time to learn about contract
     console.log(`Now verifying contract on Etherscan...`);
 
-    await saddle.verify(etherscanApiKey, contract._address, 'CErc20Immutable', deployArgs, 0);
+    await saddle.verify(etherscanApiKey, contract._address, 'BErc20Immutable', deployArgs, 0);
     console.log(`Contract verified at https://${network}.etherscan.io/address/${contract._address}`);
   }
 

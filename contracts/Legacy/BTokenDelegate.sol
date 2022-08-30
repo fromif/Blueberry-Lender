@@ -18,9 +18,9 @@ interface IComptroller {
 }
 
 /**
- * @title Cream's BToken's Contract
+ * @title Blueberry's BToken's Contract
  * @notice BToken which wraps Compound's BToken
- * @author Cream
+ * @author Blueberry
  */
 contract BTokenDelegate is BCapableErc20Delegate {
     /**

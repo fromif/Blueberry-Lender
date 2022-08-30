@@ -11,7 +11,7 @@ import "../InterestRateModel.sol";
 /**
  * @title Deprecated BToken Contract only for BEther.
  * @dev BEther will not be used anymore and existing BEther can't be upgraded.
- * @author Cream
+ * @author Blueberry
  */
 contract BTokenDeprecated is BTokenInterface, Exponential, TokenErrorReporter {
     /**

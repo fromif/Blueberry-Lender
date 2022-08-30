@@ -3,9 +3,9 @@ pragma solidity ^0.5.16;
 import "../BToken.sol";
 
 /**
- * @title Deprecated Cream's CCapableErc20 Contract
+ * @title Deprecated Blueberry's BCapableErc20 Contract
  * @notice BTokens which wrap an EIP-20 underlying
- * @author Cream
+ * @author Blueberry
  */
 contract BCapableErc20 is BToken, BCapableErc20Interface {
     /**

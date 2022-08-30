@@ -4,7 +4,7 @@ const {
 } = require('../Utils/Ethereum');
 const {
   makeComptroller,
-  makeCToken,
+  makeBToken,
   fastForward,
   quickMint,
   preApprove
@@ -27,14 +27,14 @@ function cullTuple(tuple) {
   }, {});
 }
 
-async function preMint(cToken, minter, mintAmount, mintTokens, exchangeRate) {
-  await preApprove(cToken, minter, mintAmount);
-  await send(cToken.comptroller, 'setMintAllowed', [true]);
-  await send(cToken.comptroller, 'setMintVerify', [true]);
-  await send(cToken.interestRateModel, 'setFailBorrowRate', [false]);
-  await send(cToken.underlying, 'harnessSetFailTransferFromAddress', [minter, false]);
-  await send(cToken, 'harnessSetBalance', [minter, 0]);
-  await send(cToken, 'harnessSetExchangeRate', [etherMantissa(exchangeRate)]);
+async function preMint(bToken, minter, mintAmount, mintTokens, exchangeRate) {
+  await preApprove(bToken, minter, mintAmount);
+  await send(bToken.comptroller, 'setMintAllowed', [true]);
+  await send(bToken.comptroller, 'setMintVerify', [true]);
+  await send(bToken.interestRateModel, 'setFailBorrowRate', [false]);
+  await send(bToken.underlying, 'harnessSetFailTransferFromAddress', [minter, false]);
+  await send(bToken, 'harnessSetBalance', [minter, 0]);
+  await send(bToken, 'harnessSetExchangeRate', [etherMantissa(exchangeRate)]);
 }
 
 describe('CompoundLens', () => {
@@ -46,19 +46,19 @@ describe('CompoundLens', () => {
     acct = accounts[0];
   });
 
-  describe('cTokenMetadata', () => {
-    it('is correct for a cErc20', async () => {
-      let cErc20 = await makeCToken();
-      await send(cErc20.comptroller, '_supportMarket', [cErc20._address, 0]);
-      await send(cErc20.comptroller, '_setMarketSupplyCaps', [[cErc20._address], [100]]);
-      await send(cErc20.comptroller, '_setMarketBorrowCaps', [[cErc20._address], [200]]);
-      await send(cErc20.comptroller, '_setMintPaused', [cErc20._address, true]);
-      await send(cErc20.comptroller, '_setBorrowPaused', [cErc20._address, true]);
+  describe('bTokenMetadata', () => {
+    it('is correct for a bErc20', async () => {
+      let bErc20 = await makeBToken();
+      await send(bErc20.comptroller, '_supportMarket', [bErc20._address, 0]);
+      await send(bErc20.comptroller, '_setMarketSupplyCaps', [[bErc20._address], [100]]);
+      await send(bErc20.comptroller, '_setMarketBorrowCaps', [[bErc20._address], [200]]);
+      await send(bErc20.comptroller, '_setMintPaused', [bErc20._address, true]);
+      await send(bErc20.comptroller, '_setBorrowPaused', [bErc20._address, true]);
       expect(
-        cullTuple(await call(compoundLens, 'cTokenMetadata', [cErc20._address]))
+        cullTuple(await call(compoundLens, 'bTokenMetadata', [bErc20._address]))
       ).toEqual(
         {
-          cToken: cErc20._address,
+          bToken: bErc20._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -70,8 +70,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: true,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cErc20, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bErc20, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "0",
           collateralCap: "0",
@@ -85,13 +85,13 @@ describe('CompoundLens', () => {
     });
 
     it('is correct for crEth', async () => {
-      let crEth = await makeCToken({kind: 'cether'});
+      let crEth = await makeBToken({kind: 'bether'});
       expect(
-        cullTuple(await call(compoundLens, 'cTokenMetadata', [crEth._address]))
+        cullTuple(await call(compoundLens, 'bTokenMetadata', [crEth._address]))
       ).toEqual({
         borrowRatePerBlock: "0",
-        cToken: crEth._address,
-        cTokenDecimals: "8",
+        bToken: crEth._address,
+        bTokenDecimals: "8",
         collateralFactorMantissa: "0",
         exchangeRateCurrent: "1000000000000000000",
         isListed: false,
@@ -114,13 +114,13 @@ describe('CompoundLens', () => {
       });
     });
 
-    it('is correct for a cCollateralCapErc20', async () => {
-      let cCollateralCapErc20 = await makeCToken({kind: 'ccollateralcap', supportMarket: true});
+    it('is correct for a bCollateralCapErc20', async () => {
+      let bCollateralCapErc20 = await makeBToken({kind: 'bcollateralcap', supportMarket: true});
       expect(
-        cullTuple(await call(compoundLens, 'cTokenMetadata', [cCollateralCapErc20._address]))
+        cullTuple(await call(compoundLens, 'bTokenMetadata', [bCollateralCapErc20._address]))
       ).toEqual(
         {
-          cToken: cCollateralCapErc20._address,
+          bToken: bCollateralCapErc20._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -132,8 +132,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: true,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cCollateralCapErc20, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bCollateralCapErc20, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "1",
           collateralCap: "0",
@@ -146,14 +146,14 @@ describe('CompoundLens', () => {
       );
     });
 
-    it('is correct for a cCollateralCapErc20 with collateral cap', async () => {
-      let cCollateralCapErc20 = await makeCToken({kind: 'ccollateralcap', supportMarket: true});
-      expect(await send(cCollateralCapErc20, '_setCollateralCap', [100])).toSucceed();
+    it('is correct for a bCollateralCapErc20 with collateral cap', async () => {
+      let bCollateralCapErc20 = await makeBToken({kind: 'bcollateralcap', supportMarket: true});
+      expect(await send(bCollateralCapErc20, '_setCollateralCap', [100])).toSucceed();
       expect(
-        cullTuple(await call(compoundLens, 'cTokenMetadata', [cCollateralCapErc20._address]))
+        cullTuple(await call(compoundLens, 'bTokenMetadata', [bCollateralCapErc20._address]))
       ).toEqual(
         {
-          cToken: cCollateralCapErc20._address,
+          bToken: bCollateralCapErc20._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -165,8 +165,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: true,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cCollateralCapErc20, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bCollateralCapErc20, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "1",
           collateralCap: "100",
@@ -179,13 +179,13 @@ describe('CompoundLens', () => {
       );
     });
 
-    it('is correct for a cWrappedNative', async () => {
-      let cWrappedNative = await makeCToken({kind: 'cwrapped', supportMarket: true});
+    it('is correct for a bWrappedNative', async () => {
+      let bWrappedNative = await makeBToken({kind: 'bwrapped', supportMarket: true});
       expect(
-        cullTuple(await call(compoundLens, 'cTokenMetadata', [cWrappedNative._address]))
+        cullTuple(await call(compoundLens, 'bTokenMetadata', [bWrappedNative._address]))
       ).toEqual(
         {
-          cToken: cWrappedNative._address,
+          bToken: bWrappedNative._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -197,8 +197,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: true,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cWrappedNative, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bWrappedNative, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "2",
           collateralCap: "0",
@@ -211,14 +211,14 @@ describe('CompoundLens', () => {
       );
     });
 
-    it('is correct for a cWrappedNative with supply cap', async () => {
-      let cWrappedNative = await makeCToken({kind: 'cwrapped', supportMarket: true});
-      await send(cWrappedNative.comptroller, '_setMarketSupplyCaps', [[cWrappedNative._address], [100]]);
+    it('is correct for a bWrappedNative with supply cap', async () => {
+      let bWrappedNative = await makeBToken({kind: 'bwrapped', supportMarket: true});
+      await send(bWrappedNative.comptroller, '_setMarketSupplyCaps', [[bWrappedNative._address], [100]]);
       expect(
-        cullTuple(await call(compoundLens, 'cTokenMetadata', [cWrappedNative._address]))
+        cullTuple(await call(compoundLens, 'bTokenMetadata', [bWrappedNative._address]))
       ).toEqual(
         {
-          cToken: cWrappedNative._address,
+          bToken: bWrappedNative._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -230,8 +230,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: true,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cWrappedNative, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bWrappedNative, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "2",
           collateralCap: "100", // collateralCap equals to supplyCap
@@ -245,19 +245,19 @@ describe('CompoundLens', () => {
     });
   });
 
-  describe('cTokenMetadataAll', () => {
-    it('is correct for a cErc20 and cEther', async () => {
+  describe('bTokenMetadataAll', () => {
+    it('is correct for a bErc20 and bEther', async () => {
       let comptroller = await makeComptroller();
-      let cErc20 = await makeCToken({comptroller: comptroller});
-      let crEth = await makeCToken({kind: 'cether', comptroller: comptroller});
-      let cCollateralCapErc20 = await makeCToken({kind: 'ccollateralcap', supportMarket: true, comptroller: comptroller});
-      let cWrappedNative = await makeCToken({kind: 'cwrapped', supportMarket: true, comptroller: comptroller});
-      expect(await send(cCollateralCapErc20, '_setCollateralCap', [100])).toSucceed();
+      let bErc20 = await makeBToken({comptroller: comptroller});
+      let crEth = await makeBToken({kind: 'bether', comptroller: comptroller});
+      let bCollateralCapErc20 = await makeBToken({kind: 'bcollateralcap', supportMarket: true, comptroller: comptroller});
+      let bWrappedNative = await makeBToken({kind: 'bwrapped', supportMarket: true, comptroller: comptroller});
+      expect(await send(bCollateralCapErc20, '_setCollateralCap', [100])).toSucceed();
       expect(
-        (await call(compoundLens, 'cTokenMetadataAll', [[cErc20._address, crEth._address, cCollateralCapErc20._address, cWrappedNative._address]])).map(cullTuple)
+        (await call(compoundLens, 'bTokenMetadataAll', [[bErc20._address, crEth._address, bCollateralCapErc20._address, bWrappedNative._address]])).map(cullTuple)
       ).toEqual([
         {
-          cToken: cErc20._address,
+          bToken: bErc20._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -269,8 +269,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: false,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cErc20, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bErc20, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "0",
           collateralCap: "0",
@@ -282,8 +282,8 @@ describe('CompoundLens', () => {
         },
         {
           borrowRatePerBlock: "0",
-          cToken: crEth._address,
-          cTokenDecimals: "8",
+          bToken: crEth._address,
+          bTokenDecimals: "8",
           collateralFactorMantissa: "0",
           exchangeRateCurrent: "1000000000000000000",
           isListed: false,
@@ -306,8 +306,8 @@ describe('CompoundLens', () => {
         },
         {
           borrowRatePerBlock: "0",
-          cToken: cCollateralCapErc20._address,
-          cTokenDecimals: "8",
+          bToken: bCollateralCapErc20._address,
+          bTokenDecimals: "8",
           collateralFactorMantissa: "0",
           exchangeRateCurrent: "1000000000000000000",
           isListed: true,
@@ -318,7 +318,7 @@ describe('CompoundLens', () => {
           totalReserves: "0",
           totalSupply: "0",
           totalCollateralTokens: "0",
-          underlyingAssetAddress: await call(cCollateralCapErc20, 'underlying', []),
+          underlyingAssetAddress: await call(bCollateralCapErc20, 'underlying', []),
           underlyingDecimals: "18",
           version: "1",
           collateralCap: "100",
@@ -329,7 +329,7 @@ describe('CompoundLens', () => {
           borrowCap: "0"
         },
         {
-          cToken: cWrappedNative._address,
+          bToken: bWrappedNative._address,
           exchangeRateCurrent: "1000000000000000000",
           supplyRatePerBlock: "0",
           borrowRatePerBlock: "0",
@@ -341,8 +341,8 @@ describe('CompoundLens', () => {
           totalCollateralTokens: "0",
           isListed: true,
           collateralFactorMantissa: "0",
-          underlyingAssetAddress: await call(cWrappedNative, 'underlying', []),
-          cTokenDecimals: "8",
+          underlyingAssetAddress: await call(bWrappedNative, 'underlying', []),
+          bTokenDecimals: "8",
           underlyingDecimals: "18",
           version: "2",
           collateralCap: "0",
@@ -358,34 +358,34 @@ describe('CompoundLens', () => {
     it('fails for mismatch comptroller', async () => {
       let comptroller = await makeComptroller();
       let comptroller2 = await makeComptroller();
-      let cErc20 = await makeCToken({comptroller: comptroller});
-      let crEth = await makeCToken({kind: 'cether', comptroller: comptroller});
-      let cCollateralCapErc20 = await makeCToken({kind: 'ccollateralcap', supportMarket: true, comptroller: comptroller2}); // different comptroller
-      let cWrappedNative = await makeCToken({kind: 'cwrapped', supportMarket: true, comptroller: comptroller2}); // different comptroller
+      let bErc20 = await makeBToken({comptroller: comptroller});
+      let crEth = await makeBToken({kind: 'bether', comptroller: comptroller});
+      let bCollateralCapErc20 = await makeBToken({kind: 'bcollateralcap', supportMarket: true, comptroller: comptroller2}); // different comptroller
+      let bWrappedNative = await makeBToken({kind: 'bwrapped', supportMarket: true, comptroller: comptroller2}); // different comptroller
       await expect(
-        call(compoundLens, 'cTokenMetadataAll', [[cErc20._address, crEth._address, cCollateralCapErc20._address, cWrappedNative._address]])
+        call(compoundLens, 'bTokenMetadataAll', [[bErc20._address, crEth._address, bCollateralCapErc20._address, bWrappedNative._address]])
       ).rejects.toRevert('revert mismatch comptroller');
     });
 
     it('fails for invalid input', async () => {
       await expect(
-        call(compoundLens, 'cTokenMetadataAll', [[]])
+        call(compoundLens, 'bTokenMetadataAll', [[]])
       ).rejects.toRevert('revert invalid input');
     });
   });
 
-  describe('cTokenBalances', () => {
-    it('is correct for cERC20', async () => {
-      let cErc20 = await makeCToken();
+  describe('bTokenBalances', () => {
+    it('is correct for bERC20', async () => {
+      let bErc20 = await makeBToken();
       let ethBalance = await web3.eth.getBalance(acct);
       expect(
-        cullTuple(await call(compoundLens, 'cTokenBalances', [cErc20._address, acct], {gasPrice: '0'}))
+        cullTuple(await call(compoundLens, 'bTokenBalances', [bErc20._address, acct], {gasPrice: '0'}))
       ).toEqual(
         {
           balanceOf: "0",
           balanceOfUnderlying: "0",
           borrowBalanceCurrent: "0",
-          cToken: cErc20._address,
+          bToken: bErc20._address,
           tokenAllowance: "0",
           tokenBalance: "10000000000000000000000000",
           collateralEnabled: false,
@@ -395,17 +395,17 @@ describe('CompoundLens', () => {
       );
     });
 
-    it('is correct for cETH', async () => {
-      let cEth = await makeCToken({kind: 'cether'});
+    it('is correct for bETH', async () => {
+      let bEth = await makeBToken({kind: 'bether'});
       let ethBalance = await web3.eth.getBalance(acct);
       expect(
-        cullTuple(await call(compoundLens, 'cTokenBalances', [cEth._address, acct], {gasPrice: '0'}))
+        cullTuple(await call(compoundLens, 'bTokenBalances', [bEth._address, acct], {gasPrice: '0'}))
       ).toEqual(
         {
           balanceOf: "0",
           balanceOfUnderlying: "0",
           borrowBalanceCurrent: "0",
-          cToken: cEth._address,
+          bToken: bEth._address,
           tokenAllowance: ethBalance,
           tokenBalance: ethBalance,
           collateralEnabled: false,
@@ -415,20 +415,20 @@ describe('CompoundLens', () => {
       );
     });
 
-    it('is correct for cCollateralCapErc20', async () => {
-      let cCollateralCapErc20 = await makeCToken({kind: 'ccollateralcap', comptrollerOpts: {kind: 'bool'}});
-      await send(cCollateralCapErc20, 'harnessSetBalance', [acct, mintTokens]);
-      await send(cCollateralCapErc20, 'harnessSetCollateralBalance', [acct, mintTokens]);
-      await send(cCollateralCapErc20, 'harnessSetCollateralBalanceInit', [acct]);
+    it('is correct for bCollateralCapErc20', async () => {
+      let bCollateralCapErc20 = await makeBToken({kind: 'bcollateralcap', comptrollerOpts: {kind: 'bool'}});
+      await send(bCollateralCapErc20, 'harnessSetBalance', [acct, mintTokens]);
+      await send(bCollateralCapErc20, 'harnessSetCollateralBalance', [acct, mintTokens]);
+      await send(bCollateralCapErc20, 'harnessSetCollateralBalanceInit', [acct]);
       let ethBalance = await web3.eth.getBalance(acct);
       expect(
-        cullTuple(await call(compoundLens, 'cTokenBalances', [cCollateralCapErc20._address, acct], {gasPrice: '0'}))
+        cullTuple(await call(compoundLens, 'bTokenBalances', [bCollateralCapErc20._address, acct], {gasPrice: '0'}))
       ).toEqual(
         {
           balanceOf: "2",
           balanceOfUnderlying: "2",
           borrowBalanceCurrent: "0",
-          cToken: cCollateralCapErc20._address,
+          bToken: bCollateralCapErc20._address,
           tokenAllowance: "0",
           tokenBalance: "10000000000000000000000000",
           collateralEnabled: true,
@@ -439,20 +439,20 @@ describe('CompoundLens', () => {
     });
   });
 
-  describe('cTokenBalancesAll', () => {
-    it('is correct for cEth and cErc20', async () => {
-      let cErc20 = await makeCToken();
-      let cEth = await makeCToken({kind: 'cether'});
+  describe('bTokenBalancesAll', () => {
+    it('is correct for bEth and bErc20', async () => {
+      let bErc20 = await makeBToken();
+      let bEth = await makeBToken({kind: 'bether'});
       let ethBalance = await web3.eth.getBalance(acct);
 
       expect(
-        (await call(compoundLens, 'cTokenBalancesAll', [[cErc20._address, cEth._address], acct], {gasPrice: '0'})).map(cullTuple)
+        (await call(compoundLens, 'bTokenBalancesAll', [[bErc20._address, bEth._address], acct], {gasPrice: '0'})).map(cullTuple)
       ).toEqual([
         {
           balanceOf: "0",
           balanceOfUnderlying: "0",
           borrowBalanceCurrent: "0",
-          cToken: cErc20._address,
+          bToken: bErc20._address,
           tokenAllowance: "0",
           tokenBalance: "10000000000000000000000000",
           collateralEnabled: false,
@@ -463,7 +463,7 @@ describe('CompoundLens', () => {
           balanceOf: "0",
           balanceOfUnderlying: "0",
           borrowBalanceCurrent: "0",
-          cToken: cEth._address,
+          bToken: bEth._address,
           tokenAllowance: ethBalance,
           tokenBalance: ethBalance,
           collateralEnabled: false,

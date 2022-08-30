@@ -216,7 +216,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
         #### Read
 
         * "Read ..." - Reads given value and prints result
-          * E.g. "Read BToken cBAT ExchangeRateStored" - Returns exchange rate of bBAT
+          * E.g. "Read BToken bBAT ExchangeRateStored" - Returns exchange rate of bBAT
       `,
       'Read',
       [new Arg('res', getCoreValue, { variadic: true })],
@@ -600,7 +600,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### Given
 
       * "Given value event" - Runs event only if value is truthy. Thus, given can be used to build existence checks.
-        * E.g. "Given ($var) (PriceOracle SetPrice cBAT $var)"
+        * E.g. "Given ($var) (PriceOracle SetPrice bBAT $var)"
     `,
     'Given',
     [new Arg('given', getCoreValue, { rescue: new NothingV() }), new Arg('event', getEventV)],
@@ -618,7 +618,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### Send
 
       * "Send <Address> <Amount>" - Sends a given amount of eth to given address
-        * E.g. "Send cETH 0.5e18"
+        * E.g. "Send bETH 0.5e18"
     `,
     'Send',
     [new Arg('address', getAddressV), new Arg('amount', getNumberV)],
@@ -669,7 +669,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### BToken
 
       * "BToken ...event" - Runs given BToken event
-        * E.g. "BToken cZRX Mint 5e18"
+        * E.g. "BToken bZRX Mint 5e18"
     `,
     'BToken',
     [new Arg('event', getEventV, { variadic: true })],
@@ -721,7 +721,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### PriceOracle
 
       * "PriceOracle ...event" - Runs given Price Oracle event
-        * E.g. "PriceOracle SetPrice cZRX 1.5"
+        * E.g. "PriceOracle SetPrice bZRX 1.5"
     `,
     'PriceOracle',
     [new Arg('event', getEventV, { variadic: true })],

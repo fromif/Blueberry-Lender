@@ -1,7 +1,7 @@
 const {both} = require('../Utils/Ethereum');
 const {
   makeComptroller,
-  makeCToken
+  makeBToken
 } = require('../Utils/Compound');
 
 describe('assetListTest', () => {
@@ -14,7 +14,7 @@ describe('assetListTest', () => {
     comptroller = await makeComptroller();
     allTokens = [OMG, ZRX, BAT, REP, DAI, SKT] = await Promise.all(
       ['OMG', 'ZRX', 'BAT', 'REP', 'DAI', 'sketch']
-        .map(async (name) => makeCToken({comptroller, name, symbol: name, supportMarket: name != 'sketch', underlyingPrice: 0.5}))
+        .map(async (name) => makeBToken({comptroller, name, symbol: name, supportMarket: name != 'sketch', underlyingPrice: 0.5}))
     );
   });
 
@@ -74,7 +74,7 @@ describe('assetListTest', () => {
       const result1 = await enterAndCheckMarkets([OMG], [OMG]);
       const result2 = await enterAndCheckMarkets([OMG], [OMG]);
       expect(result1).toHaveLog('MarketEntered', {
-          cToken: OMG._address,
+          bToken: OMG._address,
           account: customer
         });
       expect(result2.events).toEqual({});
@@ -157,7 +157,7 @@ describe('assetListTest', () => {
   });
 
   describe('entering from borrowAllowed', () => {
-    it("enters when called by a ctoken", async () => {
+    it("enters when called by a btoken", async () => {
       await send(BAT, 'harnessCallBorrowAllowed', [1], {from: customer});
 
       const assetsIn = await call(comptroller, 'getAssetsIn', [customer]);
@@ -167,10 +167,10 @@ describe('assetListTest', () => {
       await checkMarkets([BAT]);
     });
 
-    it("reverts when called by not a ctoken", async () => {
+    it("reverts when called by not a btoken", async () => {
       await expect(
         send(comptroller, 'borrowAllowed', [BAT._address, customer, 1], {from: customer})
-      ).rejects.toRevert('revert sender must be cToken');
+      ).rejects.toRevert('revert sender must be bToken');
 
       const assetsIn = await call(comptroller, 'getAssetsIn', [customer]);
 

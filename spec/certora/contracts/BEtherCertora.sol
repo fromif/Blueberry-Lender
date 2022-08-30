@@ -1,8 +1,8 @@
 pragma solidity ^0.5.16;
 
-import "../../../contracts/CEther.sol";
+import "../../../contracts/BEther.sol";
 
-contract CEtherCertora is CEther {
+contract BEtherCertora is BEther {
     constructor(
         ComptrollerInterface comptroller_,
         InterestRateModel interestRateModel_,
@@ -13,6 +13,6 @@ contract CEtherCertora is CEther {
         address payable admin_
     )
         public
-        CEther(comptroller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_)
+        BEther(comptroller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_)
     {}
 }

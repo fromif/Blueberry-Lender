@@ -11,8 +11,8 @@ import "./Unitroller.sol";
 import "./Governance/Comp.sol";
 
 /**
- * @title Compound's Comptroller Contract
- * @author Compound (modified by Cream)
+ * @title Blueberry's Comptroller Contract
+ * @author Compound (modified by Blueberry)
  */
 contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerErrorReporter, Exponential {
     /// @notice Emitted when an admin supports a market

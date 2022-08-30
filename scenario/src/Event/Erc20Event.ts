@@ -19,7 +19,7 @@ import {
 import {getErc20V} from '../Value/Erc20Value';
 import {verify} from '../Verify';
 import {Arg, Command, View, processCommandEvent} from '../Command';
-import {CTokenErrorReporter} from '../ErrorReporter';
+import {BTokenErrorReporter} from '../ErrorReporter';
 import {getErc20Data} from '../ContractLookup';
 
 function showTrxValue(world: World): string {
@@ -50,7 +50,7 @@ async function verifyErc20(world: World, erc20: Erc20, name: string, contract: s
 }
 
 async function approve(world: World, from: string, erc20: Erc20, address: string, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, erc20.methods.approve(address, amount.encode()), from, CTokenErrorReporter);
+  let invokation = await invoke(world, erc20.methods.approve(address, amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
@@ -62,7 +62,7 @@ async function approve(world: World, from: string, erc20: Erc20, address: string
 }
 
 async function faucet(world: World, from: string, erc20: Erc20, address: string, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, erc20.methods.allocateTo(address, amount.encode()), from, CTokenErrorReporter);
+  let invokation = await invoke(world, erc20.methods.allocateTo(address, amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
@@ -74,7 +74,7 @@ async function faucet(world: World, from: string, erc20: Erc20, address: string,
 }
 
 async function transfer(world: World, from: string, erc20: Erc20, address: string, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, erc20.methods.transfer(address, amount.encode()), from, CTokenErrorReporter);
+  let invokation = await invoke(world, erc20.methods.transfer(address, amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
@@ -86,7 +86,7 @@ async function transfer(world: World, from: string, erc20: Erc20, address: strin
 }
 
 async function transferFrom(world: World, from: string, erc20: Erc20, owner: string, spender: string, amount: NumberV): Promise<World> {
-  let invokation = await invoke(world, erc20.methods.transferFrom(owner, spender, amount.encode()), from, CTokenErrorReporter);
+  let invokation = await invoke(world, erc20.methods.transferFrom(owner, spender, amount.encode()), from, BTokenErrorReporter);
 
   world = addAction(
     world,
@@ -98,7 +98,7 @@ async function transferFrom(world: World, from: string, erc20: Erc20, owner: str
 }
 
 async function setFail(world: World, from: string, erc20: Erc20, fail: boolean): Promise<World> {
-  let invokation = await invoke(world, erc20.methods.setFail(fail), from, CTokenErrorReporter);
+  let invokation = await invoke(world, erc20.methods.setFail(fail), from, BTokenErrorReporter);
 
   world = addAction(
     world,
@@ -183,7 +183,7 @@ export function erc20Commands() {
         #### Approve
 
         * "Erc20 <Erc20> Approve spender:<Address> <Amount>" - Adds an allowance between user and address
-          * E.g. "Erc20 ZRX Approve cZRX 1.0e18"
+          * E.g. "Erc20 ZRX Approve bZRX 1.0e18"
       `,
       "Approve",
       [

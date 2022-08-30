@@ -9,15 +9,15 @@ contract MockLiquidityMining is LiquidityMiningInterface {
         comptroller = _comptroller;
     }
 
-    function updateSupplyIndex(address cToken, address[] calldata accounts) external {
+    function updateSupplyIndex(address bToken, address[] calldata accounts) external {
         // Do nothing.
-        cToken;
+        bToken;
         accounts;
     }
 
-    function updateBorrowIndex(address cToken, address[] calldata accounts) external {
+    function updateBorrowIndex(address bToken, address[] calldata accounts) external {
         // Do nothing.
-        cToken;
+        bToken;
         accounts;
     }
 }

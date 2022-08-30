@@ -2,7 +2,7 @@ import {Event} from '../Event';
 import {addAction, describeUser, World} from '../World';
 import {decodeCall, getPastEvents} from '../Contract';
 import {Comptroller} from '../Contract/Comptroller';
-import {CToken} from '../Contract/CToken';
+import {BToken} from '../Contract/BToken';
 import {invoke} from '../Invokation';
 import {
   getAddressV,
@@ -26,7 +26,7 @@ import {buildComptrollerImpl} from '../Builder/ComptrollerImplBuilder';
 import {ComptrollerErrorReporter} from '../ErrorReporter';
 import {getComptroller, getComptrollerImpl} from '../ContractLookup';
 import {getLiquidity} from '../Value/ComptrollerValue';
-import {getCTokenV} from '../Value/CTokenValue';
+import {getBTokenV} from '../Value/BTokenValue';
 import {encodeABI, rawValues} from "../Utils";
 
 async function genComptroller(world: World, from: string, params: Event): Promise<World> {
@@ -42,7 +42,7 @@ async function genComptroller(world: World, from: string, params: Event): Promis
   return world;
 };
 
-async function setPaused(world: World, from: string, comptroller: Comptroller, actionName: string, cToken: CToken, isPaused: boolean): Promise<World> {
+async function setPaused(world: World, from: string, comptroller: Comptroller, actionName: string, bToken: BToken, isPaused: boolean): Promise<World> {
   const pauseMap = {
     "Mint": comptroller.methods._setMintPaused,
     "Borrow": comptroller.methods._setBorrowPaused,
@@ -53,11 +53,11 @@ async function setPaused(world: World, from: string, comptroller: Comptroller, a
     throw `Cannot find pause function for action "${actionName}"`;
   }
 
-  let invokation = await invoke(world, pauseMap[actionName](cToken._address, isPaused), from, ComptrollerErrorReporter);
+  let invokation = await invoke(world, pauseMap[actionName](bToken._address, isPaused), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Comptroller: set paused for ${actionName} ${cToken.name} to ${isPaused}`,
+    `Comptroller: set paused for ${actionName} ${bToken.name} to ${isPaused}`,
     invokation
   );
 
@@ -76,48 +76,48 @@ async function setLiquidationIncentive(world: World, from: string, comptroller: 
   return world;
 }
 
-async function oldSupportMarket(world: World, from: string, comptroller: Comptroller, cToken: CToken): Promise<World> {
+async function oldSupportMarket(world: World, from: string, comptroller: Comptroller, bToken: BToken): Promise<World> {
   if (world.dryRun) {
     // Skip this specifically on dry runs since it's likely to crash due to a number of reasons
-    world.printer.printLine(`Dry run: Supporting market  \`${cToken._address}\``);
+    world.printer.printLine(`Dry run: Supporting market  \`${bToken._address}\``);
     return world;
   }
 
-  let invokation = await invoke(world, comptroller.methods._supportMarket(cToken._address), from, ComptrollerErrorReporter);
+  let invokation = await invoke(world, comptroller.methods._supportMarket(bToken._address), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Supported market ${cToken.name}`,
+    `Supported market ${bToken.name}`,
     invokation
   );
 
   return world;
 }
 
-async function supportMarket(world: World, from: string, comptroller: Comptroller, cToken: CToken, version: NumberV): Promise<World> {
+async function supportMarket(world: World, from: string, comptroller: Comptroller, bToken: BToken, version: NumberV): Promise<World> {
   if (world.dryRun) {
     // Skip this specifically on dry runs since it's likely to crash due to a number of reasons
-    world.printer.printLine(`Dry run: Supporting market  \`${cToken._address}\``);
+    world.printer.printLine(`Dry run: Supporting market  \`${bToken._address}\``);
     return world;
   }
 
-  let invokation = await invoke(world, comptroller.methods._supportMarket(cToken._address, version.encode()), from, ComptrollerErrorReporter);
+  let invokation = await invoke(world, comptroller.methods._supportMarket(bToken._address, version.encode()), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Supported market ${cToken.name}`,
+    `Supported market ${bToken.name}`,
     invokation
   );
 
   return world;
 }
 
-async function unlistMarket(world: World, from: string, comptroller: Comptroller, cToken: CToken, force: boolean): Promise<World> {
-  let invokation = await invoke(world, comptroller.methods._delistMarket(cToken._address, force), from, ComptrollerErrorReporter);
+async function unlistMarket(world: World, from: string, comptroller: Comptroller, bToken: BToken, force: boolean): Promise<World> {
+  let invokation = await invoke(world, comptroller.methods._delistMarket(bToken._address, force), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Unlisted market ${cToken.name}`,
+    `Unlisted market ${bToken.name}`,
     invokation
   );
 
@@ -148,12 +148,12 @@ async function exitMarket(world: World, from: string, comptroller: Comptroller, 
   return world;
 }
 
-async function updateCTokenVersion(world: World, from: string, comptroller: Comptroller, cToken: CToken, version: NumberV): Promise<World> {
-  let invokation = await invoke(world, comptroller.methods.updateCTokenVersion(cToken._address, version.encode()), from, ComptrollerErrorReporter);
+async function updateBTokenVersion(world: World, from: string, comptroller: Comptroller, bToken: BToken, version: NumberV): Promise<World> {
+  let invokation = await invoke(world, comptroller.methods.updateBTokenVersion(bToken._address, version.encode()), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Update market ${cToken.name} version to ${version.show()}`,
+    `Update market ${bToken.name} version to ${version.show()}`,
     invokation
   );
 
@@ -172,12 +172,12 @@ async function setPriceOracle(world: World, from: string, comptroller: Comptroll
   return world;
 }
 
-async function setCollateralFactor(world: World, from: string, comptroller: Comptroller, cToken: CToken, collateralFactor: NumberV): Promise<World> {
-  let invokation = await invoke(world, comptroller.methods._setCollateralFactor(cToken._address, collateralFactor.encode()), from, ComptrollerErrorReporter);
+async function setCollateralFactor(world: World, from: string, comptroller: Comptroller, bToken: BToken, collateralFactor: NumberV): Promise<World> {
+  let invokation = await invoke(world, comptroller.methods._setCollateralFactor(bToken._address, collateralFactor.encode()), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Set collateral factor for ${cToken.name} to ${collateralFactor.show()}`,
+    `Set collateral factor for ${bToken.name} to ${collateralFactor.show()}`,
     invokation
   );
 
@@ -285,7 +285,7 @@ async function setGuardianPaused(world: World, from: string, comptroller: Comptr
   return world;
 }
 
-async function setGuardianMarketPaused(world: World, from: string, comptroller: Comptroller, cToken: CToken, action: string, state: boolean): Promise<World> {
+async function setGuardianMarketPaused(world: World, from: string, comptroller: Comptroller, bToken: BToken, action: string, state: boolean): Promise<World> {
   let fun;
   switch(action){
     case "Mint":
@@ -295,7 +295,7 @@ async function setGuardianMarketPaused(world: World, from: string, comptroller: 
       fun = comptroller.methods._setBorrowPaused
       break;
   }
-  let invokation = await invoke(world, fun(cToken._address, state), from, ComptrollerErrorReporter);
+  let invokation = await invoke(world, fun(bToken._address, state), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
@@ -306,24 +306,24 @@ async function setGuardianMarketPaused(world: World, from: string, comptroller: 
   return world;
 }
 
-async function setMarketSupplyCaps(world: World, from: string, comptroller: Comptroller, cTokens: CToken[], supplyCaps: NumberV[]): Promise<World> {
-  let invokation = await invoke(world, comptroller.methods._setMarketSupplyCaps(cTokens.map(c => c._address), supplyCaps.map(c => c.encode())), from, ComptrollerErrorReporter);
+async function setMarketSupplyCaps(world: World, from: string, comptroller: Comptroller, bTokens: BToken[], supplyCaps: NumberV[]): Promise<World> {
+  let invokation = await invoke(world, comptroller.methods._setMarketSupplyCaps(bTokens.map(c => c._address), supplyCaps.map(c => c.encode())), from, ComptrollerErrorReporter);
 
   world = addAction(
       world,
-      `Supply caps on ${cTokens} set to ${supplyCaps}`,
+      `Supply caps on ${bTokens} set to ${supplyCaps}`,
       invokation
   );
 
   return world;
 }
 
-async function setMarketBorrowCaps(world: World, from: string, comptroller: Comptroller, cTokens: CToken[], borrowCaps: NumberV[]): Promise<World> {
-  let invokation = await invoke(world, comptroller.methods._setMarketBorrowCaps(cTokens.map(c => c._address), borrowCaps.map(c => c.encode())), from, ComptrollerErrorReporter);
+async function setMarketBorrowCaps(world: World, from: string, comptroller: Comptroller, bTokens: BToken[], borrowCaps: NumberV[]): Promise<World> {
+  let invokation = await invoke(world, comptroller.methods._setMarketBorrowCaps(bTokens.map(c => c._address), borrowCaps.map(c => c.encode())), from, ComptrollerErrorReporter);
 
   world = addAction(
     world,
-    `Borrow caps on ${cTokens} set to ${borrowCaps}`,
+    `Borrow caps on ${bTokens} set to ${borrowCaps}`,
     invokation
   );
 
@@ -364,101 +364,101 @@ export function comptrollerCommands() {
       [new Arg("comptrollerParams", getEventV, {variadic: true})],
       (world, from, {comptrollerParams}) => genComptroller(world, from, comptrollerParams.val)
     ),
-    new Command<{comptroller: Comptroller, action: StringV, cToken: CToken, isPaused: BoolV}>(`
+    new Command<{comptroller: Comptroller, action: StringV, bToken: BToken, isPaused: BoolV}>(`
         #### SetPaused
 
-        * "Comptroller SetPaused <Action> <CToken> <Bool>" - Pauses or unpaused given cToken function
-          * E.g. "Comptroller SetPaused "Mint" cZRX True"
+        * "Comptroller SetPaused <Action> <BToken> <Bool>" - Pauses or unpaused given bToken function
+          * E.g. "Comptroller SetPaused "Mint" bZRX True"
       `,
       "SetPaused",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
         new Arg("action", getStringV),
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("isPaused", getBoolV)
       ],
-      (world, from, {comptroller, action, cToken, isPaused}) => setPaused(world, from, comptroller, action.val, cToken, isPaused.val)
+      (world, from, {comptroller, action, bToken, isPaused}) => setPaused(world, from, comptroller, action.val, bToken, isPaused.val)
     ),
-    new Command<{comptroller: Comptroller, cToken: CToken}>(`
+    new Command<{comptroller: Comptroller, bToken: BToken}>(`
         #### OldSupportMarket
 
-        * "Comptroller OldSupportMarket <CToken>" - Adds support in the Comptroller for the given cToken
-          * E.g. "Comptroller OldSupportMarket cZRX"
+        * "Comptroller OldSupportMarket <BToken>" - Adds support in the Comptroller for the given bToken
+          * E.g. "Comptroller OldSupportMarket bZRX"
       `,
       "OldSupportMarket",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, {comptroller, cToken}) => oldSupportMarket(world, from, comptroller, cToken)
+      (world, from, {comptroller, bToken}) => oldSupportMarket(world, from, comptroller, bToken)
     ),
-    new Command<{comptroller: Comptroller, cToken: CToken, version: NumberV}>(`
+    new Command<{comptroller: Comptroller, bToken: BToken, version: NumberV}>(`
         #### SupportMarket
 
-        * "Comptroller SupportMarket <CToken> <Number>" - Adds support in the Comptroller for the given cToken
-          * E.g. "Comptroller SupportMarket cZRX 0"
+        * "Comptroller SupportMarket <BToken> <Number>" - Adds support in the Comptroller for the given bToken
+          * E.g. "Comptroller SupportMarket bZRX 0"
       `,
       "SupportMarket",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("version", getNumberV)
       ],
-      (world, from, {comptroller, cToken, version}) => supportMarket(world, from, comptroller, cToken, version)
+      (world, from, {comptroller, bToken, version}) => supportMarket(world, from, comptroller, bToken, version)
     ),
-    new Command<{comptroller: Comptroller, cToken: CToken, force: BoolV}>(`
+    new Command<{comptroller: Comptroller, bToken: BToken, force: BoolV}>(`
         #### UnList
 
-        * "Comptroller UnList <CToken> <Bool>" - Mock unlists a given market in tests
-          * E.g. "Comptroller UnList cZRX True"
+        * "Comptroller UnList <BToken> <Bool>" - Mock unlists a given market in tests
+          * E.g. "Comptroller UnList bZRX True"
       `,
       "UnList",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("force", getBoolV)
       ],
-      (world, from, {comptroller, cToken, force}) => unlistMarket(world, from, comptroller, cToken, force.val)
+      (world, from, {comptroller, bToken, force}) => unlistMarket(world, from, comptroller, bToken, force.val)
     ),
-    new Command<{comptroller: Comptroller, cTokens: CToken[]}>(`
+    new Command<{comptroller: Comptroller, bTokens: BToken[]}>(`
         #### EnterMarkets
 
-        * "Comptroller EnterMarkets (<CToken> ...)" - User enters the given markets
-          * E.g. "Comptroller EnterMarkets (cZRX cETH)"
+        * "Comptroller EnterMarkets (<BToken> ...)" - User enters the given markets
+          * E.g. "Comptroller EnterMarkets (bZRX bETH)"
       `,
       "EnterMarkets",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cTokens", getCTokenV, {mapped: true})
+        new Arg("bTokens", getBTokenV, {mapped: true})
       ],
-      (world, from, {comptroller, cTokens}) => enterMarkets(world, from, comptroller, cTokens.map((c) => c._address))
+      (world, from, {comptroller, bTokens}) => enterMarkets(world, from, comptroller, bTokens.map((c) => c._address))
     ),
-    new Command<{comptroller: Comptroller, cToken: CToken}>(`
+    new Command<{comptroller: Comptroller, bToken: BToken}>(`
         #### ExitMarket
 
-        * "Comptroller ExitMarket <CToken>" - User exits the given markets
-          * E.g. "Comptroller ExitMarket cZRX"
+        * "Comptroller ExitMarket <BToken>" - User exits the given markets
+          * E.g. "Comptroller ExitMarket bZRX"
       `,
       "ExitMarket",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cToken", getCTokenV)
+        new Arg("bToken", getBTokenV)
       ],
-      (world, from, {comptroller, cToken}) => exitMarket(world, from, comptroller, cToken._address)
+      (world, from, {comptroller, bToken}) => exitMarket(world, from, comptroller, bToken._address)
     ),
-    new Command<{comptroller: Comptroller, cToken: CToken, version: NumberV}>(`
-        #### UpdateCTokenVersion
+    new Command<{comptroller: Comptroller, bToken: BToken, version: NumberV}>(`
+        #### UpdateBTokenVersion
 
-        * "Comptroller UpdateCTokenVersion <CToken> <Number>" - Update a CToken's version
-          * E.g. "Comptroller UpdateCTokenVersion cZRX 1"
+        * "Comptroller UpdateBTokenVersion <BToken> <Number>" - Update a BToken's version
+          * E.g. "Comptroller UpdateBTokenVersion bZRX 1"
       `,
-      "UpdateCTokenVersion",
+      "UpdateBTokenVersion",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("version", getNumberV)
       ],
-      (world, from, {comptroller, cToken, version}) => updateCTokenVersion(world, from, comptroller, cToken, version)
+      (world, from, {comptroller, bToken, version}) => updateBTokenVersion(world, from, comptroller, bToken, version)
     ),
     new Command<{comptroller: Comptroller, liquidationIncentive: NumberV}>(`
         #### LiquidationIncentive
@@ -486,19 +486,19 @@ export function comptrollerCommands() {
       ],
       (world, from, {comptroller, priceOracle}) => setPriceOracle(world, from, comptroller, priceOracle.val)
     ),
-    new Command<{comptroller: Comptroller, cToken: CToken, collateralFactor: NumberV}>(`
+    new Command<{comptroller: Comptroller, bToken: BToken, collateralFactor: NumberV}>(`
         #### SetCollateralFactor
 
-        * "Comptroller SetCollateralFactor <CToken> <Number>" - Sets the collateral factor for given cToken to number
-          * E.g. "Comptroller SetCollateralFactor cZRX 0.1"
+        * "Comptroller SetCollateralFactor <BToken> <Number>" - Sets the collateral factor for given bToken to number
+          * E.g. "Comptroller SetCollateralFactor bZRX 0.1"
       `,
       "SetCollateralFactor",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cToken", getCTokenV),
+        new Arg("bToken", getBTokenV),
         new Arg("collateralFactor", getExpNumberV)
       ],
-      (world, from, {comptroller, cToken, collateralFactor}) => setCollateralFactor(world, from, comptroller, cToken, collateralFactor)
+      (world, from, {comptroller, bToken, collateralFactor}) => setCollateralFactor(world, from, comptroller, bToken, collateralFactor)
     ),
     new Command<{comptroller: Comptroller, closeFactor: NumberV}>(`
         #### SetCloseFactor
@@ -555,7 +555,7 @@ export function comptrollerCommands() {
     new Command<{comptroller: Comptroller, action: StringV, isPaused: BoolV}>(`
         #### SetGuardianPaused
 
-        * "Comptroller SetGuardianPaused <Action> <Bool>" - Pauses or unpaused given cToken function
+        * "Comptroller SetGuardianPaused <Action> <Bool>" - Pauses or unpaused given bToken function
         * E.g. "Comptroller SetGuardianPaused "Transfer" True"
         `,
         "SetGuardianPaused",
@@ -567,26 +567,26 @@ export function comptrollerCommands() {
         (world, from, {comptroller, action, isPaused}) => setGuardianPaused(world, from, comptroller, action.val, isPaused.val)
     ),
 
-    new Command<{comptroller: Comptroller, cToken: CToken, action: StringV, isPaused: BoolV}>(`
+    new Command<{comptroller: Comptroller, bToken: BToken, action: StringV, isPaused: BoolV}>(`
         #### SetGuardianMarketPaused
 
-        * "Comptroller SetGuardianMarketPaused <CToken> <Action> <Bool>" - Pauses or unpaused given cToken function
-        * E.g. "Comptroller SetGuardianMarketPaused cREP "Mint" True"
+        * "Comptroller SetGuardianMarketPaused <BToken> <Action> <Bool>" - Pauses or unpaused given bToken function
+        * E.g. "Comptroller SetGuardianMarketPaused bREP "Mint" True"
         `,
         "SetGuardianMarketPaused",
         [
           new Arg("comptroller", getComptroller, {implicit: true}),
-          new Arg("cToken", getCTokenV),
+          new Arg("bToken", getBTokenV),
           new Arg("action", getStringV),
           new Arg("isPaused", getBoolV)
         ],
-        (world, from, {comptroller, cToken, action, isPaused}) => setGuardianMarketPaused(world, from, comptroller, cToken, action.val, isPaused.val)
+        (world, from, {comptroller, bToken, action, isPaused}) => setGuardianMarketPaused(world, from, comptroller, bToken, action.val, isPaused.val)
     ),
 
     new Command<{comptroller: Comptroller, blocks: NumberV, _keyword: StringV}>(`
         #### FastForward
 
-        * "FastForward n:<Number> Blocks" - Moves the block number forward "n" blocks. Note: in "CTokenScenario" and "ComptrollerScenario" the current block number is mocked (starting at 100000). This is the only way for the protocol to see a higher block number (for accruing interest).
+        * "FastForward n:<Number> Blocks" - Moves the block number forward "n" blocks. Note: in "BTokenScenario" and "ComptrollerScenario" the current block number is mocked (starting at 100000). This is the only way for the protocol to see a higher block number (for accruing interest).
           * E.g. "Comptroller FastForward 5 Blocks" - Move block number forward 5 blocks.
       `,
       "FastForward",
@@ -621,33 +621,33 @@ export function comptrollerCommands() {
       ],
       (world, {comptroller, input}) => decodeCall(world, comptroller, input.val)
     ),
-    new Command<{comptroller: Comptroller, cTokens: CToken[], supplyCaps: NumberV[]}>(`
+    new Command<{comptroller: Comptroller, bTokens: BToken[], supplyCaps: NumberV[]}>(`
       #### SetMarketSupplyCaps
 
-      * "Comptroller SetMarketSupplyCaps (<CToken> ...) (<supplyCap> ...)" - Sets Market Supply Caps
-      * E.g. "Comptroller SetMarketSupplyCaps (cZRX cUSDC) (10000.0e18, 1000.0e6)
+      * "Comptroller SetMarketSupplyCaps (<BToken> ...) (<supplyCap> ...)" - Sets Market Supply Caps
+      * E.g. "Comptroller SetMarketSupplyCaps (bZRX bUSDC) (10000.0e18, 1000.0e6)
       `,
         "SetMarketSupplyCaps",
         [
           new Arg("comptroller", getComptroller, {implicit: true}),
-          new Arg("cTokens", getCTokenV, {mapped: true}),
+          new Arg("bTokens", getBTokenV, {mapped: true}),
           new Arg("supplyCaps", getNumberV, {mapped: true})
         ],
-        (world, from, {comptroller, cTokens, supplyCaps}) => setMarketSupplyCaps(world, from, comptroller, cTokens, supplyCaps)
+        (world, from, {comptroller, bTokens, supplyCaps}) => setMarketSupplyCaps(world, from, comptroller, bTokens, supplyCaps)
     ),
-    new Command<{comptroller: Comptroller, cTokens: CToken[], borrowCaps: NumberV[]}>(`
+    new Command<{comptroller: Comptroller, bTokens: BToken[], borrowCaps: NumberV[]}>(`
       #### SetMarketBorrowCaps
 
-      * "Comptroller SetMarketBorrowCaps (<CToken> ...) (<borrowCap> ...)" - Sets Market Borrow Caps
-      * E.g "Comptroller SetMarketBorrowCaps (cZRX cUSDC) (10000.0e18, 1000.0e6)
+      * "Comptroller SetMarketBorrowCaps (<BToken> ...) (<borrowCap> ...)" - Sets Market Borrow Caps
+      * E.g "Comptroller SetMarketBorrowCaps (bZRX bUSDC) (10000.0e18, 1000.0e6)
       `,
       "SetMarketBorrowCaps",
       [
         new Arg("comptroller", getComptroller, {implicit: true}),
-        new Arg("cTokens", getCTokenV, {mapped: true}),
+        new Arg("bTokens", getBTokenV, {mapped: true}),
         new Arg("borrowCaps", getNumberV, {mapped: true})
       ],
-      (world, from, {comptroller, cTokens, borrowCaps}) => setMarketBorrowCaps(world, from, comptroller, cTokens, borrowCaps)
+      (world, from, {comptroller, bTokens, borrowCaps}) => setMarketBorrowCaps(world, from, comptroller, bTokens, borrowCaps)
     ),
     new Command<{comptroller: Comptroller, blockNumber: NumberV}>(`
         #### SetBlockNumber
@@ -665,7 +665,7 @@ export function comptrollerCommands() {
     new Command<{comptroller: Comptroller, protocol: AddressV, market: AddressV, creditLimit: NumberV}>(`
         #### SetCreditLimit
         * "Comptroller SetCreditLimit <Protocol> <Market> <CreditLimit>" - Sets the market credit limit of a protocol
-        * E.g. "Comptroller SetCreditLimit Geoff cZRX 100"
+        * E.g. "Comptroller SetCreditLimit Geoff bZRX 100"
       `,
       'SetCreditLimit',
       [

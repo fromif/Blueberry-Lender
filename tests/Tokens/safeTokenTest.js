@@ -1,51 +1,51 @@
 const {
-  makeCToken,
+  makeBToken,
   getBalances,
   adjustBalances
 } = require('../Utils/Compound');
 
 const exchangeRate = 5;
 
-describe('CEther', function () {
+describe('BEther', function () {
   let root, nonRoot, accounts;
-  let cToken;
+  let bToken;
   beforeEach(async () => {
     [root, nonRoot, ...accounts] = saddle.accounts;
-    cToken = await makeCToken({kind: 'cether', comptrollerOpts: {kind: 'bool'}});
+    bToken = await makeBToken({kind: 'bether', comptrollerOpts: {kind: 'bool'}});
   });
 
   describe("getCashPrior", () => {
-    it("returns the amount of ether held by the cEther contract before the current message", async () => {
-      expect(await call(cToken, 'harnessGetCashPrior', [], {value: 100})).toEqualNumber(0);
+    it("returns the amount of ether held by the bEther contract before the current message", async () => {
+      expect(await call(bToken, 'harnessGetCashPrior', [], {value: 100})).toEqualNumber(0);
     });
   });
 
   describe("doTransferIn", () => {
     it("succeeds if from is msg.nonRoot and amount is msg.value", async () => {
-      expect(await call(cToken, 'harnessDoTransferIn', [root, 100], {value: 100})).toEqualNumber(100);
+      expect(await call(bToken, 'harnessDoTransferIn', [root, 100], {value: 100})).toEqualNumber(100);
     });
 
     it("reverts if from != msg.sender", async () => {
-      await expect(call(cToken, 'harnessDoTransferIn', [nonRoot, 100], {value: 100})).rejects.toRevert("revert sender mismatch");
+      await expect(call(bToken, 'harnessDoTransferIn', [nonRoot, 100], {value: 100})).rejects.toRevert("revert sender mismatch");
     });
 
     it("reverts if amount != msg.value", async () => {
-      await expect(call(cToken, 'harnessDoTransferIn', [root, 77], {value: 100})).rejects.toRevert("revert value mismatch");
+      await expect(call(bToken, 'harnessDoTransferIn', [root, 77], {value: 100})).rejects.toRevert("revert value mismatch");
     });
 
     describe("doTransferOut", () => {
       it("transfers ether out", async () => {
-        const beforeBalances = await getBalances([cToken], [nonRoot]);
-        const receipt = await send(cToken, 'harnessDoTransferOut', [nonRoot, 77], {value: 77});
-        const afterBalances = await getBalances([cToken], [nonRoot]);
+        const beforeBalances = await getBalances([bToken], [nonRoot]);
+        const receipt = await send(bToken, 'harnessDoTransferOut', [nonRoot, 77], {value: 77});
+        const afterBalances = await getBalances([bToken], [nonRoot]);
         expect(receipt).toSucceed();
         expect(afterBalances).toEqual(await adjustBalances(beforeBalances, [
-          [cToken, nonRoot, 'eth', 77]
+          [bToken, nonRoot, 'eth', 77]
         ]));
       });
 
       it("reverts if it fails", async () => {
-        await expect(call(cToken, 'harnessDoTransferOut', [root, 77], {value: 0})).rejects.toRevert();
+        await expect(call(bToken, 'harnessDoTransferOut', [root, 77], {value: 0})).rejects.toRevert();
       });
     });
   });

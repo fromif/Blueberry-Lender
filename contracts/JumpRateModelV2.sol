@@ -4,8 +4,8 @@ import "./InterestRateModel.sol";
 import "./SafeMath.sol";
 
 /**
- * @title Iron Bank's JumpRateModel Contract V2
- * @author Compound (modified by Dharma Labs)
+ * @title Blueberry's JumpRateModel Contract V2
+ * @author Compound (modified by Blueberry)
  */
 contract JumpRateModelV2 is InterestRateModel {
     using SafeMath for uint256;

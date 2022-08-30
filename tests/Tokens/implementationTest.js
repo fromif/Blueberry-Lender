@@ -3,62 +3,62 @@ const {
 } = require('../Utils/Ethereum');
 
 const {
-  makeCToken,
+  makeBToken,
   preCSLP
 } = require('../Utils/Compound');
 
 const amount = etherUnsigned(10e4);
 
-describe('CToken', function () {
-  let cToken, root, admin, accounts;
+describe('BToken', function () {
+  let bToken, root, admin, accounts;
   beforeEach(async () => {
     [root, admin, ...accounts] = saddle.accounts;
-    cToken = await makeCToken({comptrollerOpts: {kind: 'bool'}});
+    bToken = await makeBToken({comptrollerOpts: {kind: 'bool'}});
   });
 
   describe('_setImplementation', () => {
-    describe('ccapable', () => {
-      let cCapableDelegate;
+    describe('bcapable', () => {
+      let bCapableDelegate;
       beforeEach(async () => {
-        cCapableDelegate = await deploy('CCapableErc20Delegate');
+        bCapableDelegate = await deploy('BCapableErc20Delegate');
       });
 
       it("fails due to non admin", async () => {
-        cToken = await saddle.getContractAt('CErc20Delegator', cToken._address);
-        await expect(send(cToken, '_setImplementation', [cCapableDelegate._address, true, '0x0'], { from: accounts[0] })).rejects.toRevert("revert CErc20Delegator::_setImplementation: Caller must be admin");
+        bToken = await saddle.getContractAt('BErc20Delegator', bToken._address);
+        await expect(send(bToken, '_setImplementation', [bCapableDelegate._address, true, '0x0'], { from: accounts[0] })).rejects.toRevert("revert BErc20Delegator::_setImplementation: Caller must be admin");
       });
 
       it("succeeds to have internal cash", async () => {
-        await send(cToken.underlying, 'harnessSetBalance', [cToken._address, amount]);
+        await send(bToken.underlying, 'harnessSetBalance', [bToken._address, amount]);
 
-        cToken = await saddle.getContractAt('CErc20Delegator', cToken._address);
-        expect(await send(cToken, '_setImplementation', [cCapableDelegate._address, true, '0x0'])).toSucceed();
+        bToken = await saddle.getContractAt('BErc20Delegator', bToken._address);
+        expect(await send(bToken, '_setImplementation', [bCapableDelegate._address, true, '0x0'])).toSucceed();
 
-        cToken = await saddle.getContractAt('CCapableErc20Delegate', cToken._address);
-        const result = await call(cToken, 'getCash');
+        bToken = await saddle.getContractAt('BCapableErc20Delegate', bToken._address);
+        const result = await call(bToken, 'getCash');
         expect(result).toEqualNumber(amount);
       });
     });
 
-    describe('cCollateralCap', () => {
-      let cCollateralCapDelegate;
+    describe('bCollateralCap', () => {
+      let bCollateralCapDelegate;
       beforeEach(async () => {
-        cCollateralCapDelegate = await deploy('CCollateralCapErc20Delegate');
+        bCollateralCapDelegate = await deploy('BCollateralCapErc20Delegate');
       });
 
       it("fails due to non admin", async () => {
-        cToken = await saddle.getContractAt('CErc20Delegator', cToken._address);
-        await expect(send(cToken, '_setImplementation', [cCollateralCapDelegate._address, true, '0x0'], { from: accounts[0] })).rejects.toRevert("revert CErc20Delegator::_setImplementation: Caller must be admin");
+        bToken = await saddle.getContractAt('BErc20Delegator', bToken._address);
+        await expect(send(bToken, '_setImplementation', [bCollateralCapDelegate._address, true, '0x0'], { from: accounts[0] })).rejects.toRevert("revert BErc20Delegator::_setImplementation: Caller must be admin");
       });
 
       it("succeeds to have internal cash", async () => {
-        await send(cToken.underlying, 'harnessSetBalance', [cToken._address, amount]);
+        await send(bToken.underlying, 'harnessSetBalance', [bToken._address, amount]);
 
-        cToken = await saddle.getContractAt('CErc20Delegator', cToken._address);
-        expect(await send(cToken, '_setImplementation', [cCollateralCapDelegate._address, true, '0x0'])).toSucceed();
+        bToken = await saddle.getContractAt('BErc20Delegator', bToken._address);
+        expect(await send(bToken, '_setImplementation', [bCollateralCapDelegate._address, true, '0x0'])).toSucceed();
 
-        cToken = await saddle.getContractAt('CCollateralCapErc20Delegate', cToken._address);
-        const result = await call(cToken, 'getCash');
+        bToken = await saddle.getContractAt('BCollateralCapErc20Delegate', bToken._address);
+        const result = await call(bToken, 'getCash');
         expect(result).toEqualNumber(amount);
       });
     });

@@ -5,7 +5,7 @@ const {
 } = require('../Utils/Ethereum');
 
 const {
-  makeCToken,
+  makeBToken,
   fastForward,
   setBalance,
   getBalances,
@@ -18,141 +18,141 @@ const repayAmount = etherUnsigned(10e2);
 const seizeAmount = repayAmount;
 const seizeTokens = seizeAmount.multipliedBy(4); // forced
 
-async function preLiquidate(cToken, liquidator, borrower, repayAmount, cTokenCollateral) {
+async function preLiquidate(bToken, liquidator, borrower, repayAmount, bTokenCollateral) {
   // setup for success in liquidating
-  await send(cToken.comptroller, 'setLiquidateBorrowAllowed', [true]);
-  await send(cToken.comptroller, 'setLiquidateBorrowVerify', [true]);
-  await send(cToken.comptroller, 'setRepayBorrowAllowed', [true]);
-  await send(cToken.comptroller, 'setRepayBorrowVerify', [true]);
-  await send(cToken.comptroller, 'setSeizeAllowed', [true]);
-  await send(cToken.comptroller, 'setSeizeVerify', [true]);
-  await send(cToken.comptroller, 'setFailCalculateSeizeTokens', [false]);
-  await send(cToken.underlying, 'harnessSetFailTransferFromAddress', [liquidator, false]);
-  await send(cToken.interestRateModel, 'setFailBorrowRate', [false]);
-  await send(cTokenCollateral.interestRateModel, 'setFailBorrowRate', [false]);
-  await send(cTokenCollateral.comptroller, 'setCalculatedSeizeTokens', [seizeTokens]);
-  await setBalance(cTokenCollateral, liquidator, 0);
-  await setBalance(cTokenCollateral, borrower, seizeTokens);
-  await pretendBorrow(cTokenCollateral, borrower, 0, 1, 0);
-  await pretendBorrow(cToken, borrower, 1, 1, repayAmount);
-  await preApprove(cToken, liquidator, repayAmount);
+  await send(bToken.comptroller, 'setLiquidateBorrowAllowed', [true]);
+  await send(bToken.comptroller, 'setLiquidateBorrowVerify', [true]);
+  await send(bToken.comptroller, 'setRepayBorrowAllowed', [true]);
+  await send(bToken.comptroller, 'setRepayBorrowVerify', [true]);
+  await send(bToken.comptroller, 'setSeizeAllowed', [true]);
+  await send(bToken.comptroller, 'setSeizeVerify', [true]);
+  await send(bToken.comptroller, 'setFailCalculateSeizeTokens', [false]);
+  await send(bToken.underlying, 'harnessSetFailTransferFromAddress', [liquidator, false]);
+  await send(bToken.interestRateModel, 'setFailBorrowRate', [false]);
+  await send(bTokenCollateral.interestRateModel, 'setFailBorrowRate', [false]);
+  await send(bTokenCollateral.comptroller, 'setCalculatedSeizeTokens', [seizeTokens]);
+  await setBalance(bTokenCollateral, liquidator, 0);
+  await setBalance(bTokenCollateral, borrower, seizeTokens);
+  await pretendBorrow(bTokenCollateral, borrower, 0, 1, 0);
+  await pretendBorrow(bToken, borrower, 1, 1, repayAmount);
+  await preApprove(bToken, liquidator, repayAmount);
 }
 
-async function liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral) {
-  return send(cToken, 'harnessLiquidateBorrowFresh', [liquidator, borrower, repayAmount, cTokenCollateral._address]);
+async function liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral) {
+  return send(bToken, 'harnessLiquidateBorrowFresh', [liquidator, borrower, repayAmount, bTokenCollateral._address]);
 }
 
-async function liquidate(cToken, liquidator, borrower, repayAmount, cTokenCollateral) {
+async function liquidate(bToken, liquidator, borrower, repayAmount, bTokenCollateral) {
   // make sure to have a block delta so we accrue interest
-  await fastForward(cToken, 1);
-  await fastForward(cTokenCollateral, 1);
-  return send(cToken, 'liquidateBorrow', [borrower, repayAmount, cTokenCollateral._address], {from: liquidator});
+  await fastForward(bToken, 1);
+  await fastForward(bTokenCollateral, 1);
+  return send(bToken, 'liquidateBorrow', [borrower, repayAmount, bTokenCollateral._address], {from: liquidator});
 }
 
-async function seize(cToken, liquidator, borrower, seizeAmount) {
-  return send(cToken, 'seize', [liquidator, borrower, seizeAmount]);
+async function seize(bToken, liquidator, borrower, seizeAmount) {
+  return send(bToken, 'seize', [liquidator, borrower, seizeAmount]);
 }
 
-describe('CToken', function () {
+describe('BToken', function () {
   let root, liquidator, borrower, accounts;
-  let cToken, cTokenCollateral;
+  let bToken, bTokenCollateral;
 
   beforeEach(async () => {
     [root, liquidator, borrower, ...accounts] = saddle.accounts;
-    cToken = await makeCToken({comptrollerOpts: {kind: 'bool'}});
-    cTokenCollateral = await makeCToken({comptroller: cToken.comptroller});
+    bToken = await makeBToken({comptrollerOpts: {kind: 'bool'}});
+    bTokenCollateral = await makeBToken({comptroller: bToken.comptroller});
   });
 
   beforeEach(async () => {
-    await preLiquidate(cToken, liquidator, borrower, repayAmount, cTokenCollateral);
+    await preLiquidate(bToken, liquidator, borrower, repayAmount, bTokenCollateral);
   });
 
   describe('liquidateBorrowFresh', () => {
     it("fails if comptroller tells it to", async () => {
-      await send(cToken.comptroller, 'setLiquidateBorrowAllowed', [false]);
+      await send(bToken.comptroller, 'setLiquidateBorrowAllowed', [false]);
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert('revert rejected');
     });
 
     it("proceeds if comptroller tells it to", async () => {
       expect(
-        await liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        await liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).toSucceed();
     });
 
     it("fails if market is stale", async () => {
-      await fastForward(cToken);
+      await fastForward(bToken);
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert('revert market is stale');
     });
 
     it("fails if collateral market is stale", async () => {
-      await fastForward(cToken);
-      await fastForward(cTokenCollateral);
-      await send(cToken, 'accrueInterest');
+      await fastForward(bToken);
+      await fastForward(bTokenCollateral);
+      await send(bToken, 'accrueInterest');
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert('revert market is stale');
     });
 
     it("fails if borrower is equal to liquidator", async () => {
       await expect(
-        liquidateFresh(cToken, borrower, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, borrower, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert('revert invalid account pair');
     });
 
     it("fails if repayAmount = 0", async () => {
-      await expect(liquidateFresh(cToken, liquidator, borrower, 0, cTokenCollateral)).rejects.toRevert('revert invalid amount');
+      await expect(liquidateFresh(bToken, liquidator, borrower, 0, bTokenCollateral)).rejects.toRevert('revert invalid amount');
     });
 
     it("fails if calculating seize tokens fails and does not adjust balances", async () => {
-      const beforeBalances = await getBalances([cToken, cTokenCollateral], [liquidator, borrower]);
-      await send(cToken.comptroller, 'setFailCalculateSeizeTokens', [true]);
+      const beforeBalances = await getBalances([bToken, bTokenCollateral], [liquidator, borrower]);
+      await send(bToken.comptroller, 'setFailCalculateSeizeTokens', [true]);
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert('revert calculate seize amount failed');
-      const afterBalances = await getBalances([cToken, cTokenCollateral], [liquidator, borrower]);
+      const afterBalances = await getBalances([bToken, bTokenCollateral], [liquidator, borrower]);
       expect(afterBalances).toEqual(beforeBalances);
     });
 
     it("fails if repay fails", async () => {
-      await send(cToken.comptroller, 'setRepayBorrowAllowed', [false]);
+      await send(bToken.comptroller, 'setRepayBorrowAllowed', [false]);
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert('revert rejected');
     });
 
     it("reverts if seize fails", async () => {
-      await send(cToken.comptroller, 'setSeizeAllowed', [false]);
+      await send(bToken.comptroller, 'setSeizeAllowed', [false]);
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert("revert rejected");
     });
 
     it("reverts if liquidateBorrowVerify fails", async() => {
-      await send(cToken.comptroller, 'setLiquidateBorrowVerify', [false]);
+      await send(bToken.comptroller, 'setLiquidateBorrowVerify', [false]);
       await expect(
-        liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral)
+        liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral)
       ).rejects.toRevert("revert liquidateBorrowVerify rejected liquidateBorrow");
     });
 
     it("transfers the cash, borrows, tokens, and emits Transfer, LiquidateBorrow events", async () => {
-      const beforeBalances = await getBalances([cToken, cTokenCollateral], [liquidator, borrower]);
-      const result = await liquidateFresh(cToken, liquidator, borrower, repayAmount, cTokenCollateral);
-      const afterBalances = await getBalances([cToken, cTokenCollateral], [liquidator, borrower]);
+      const beforeBalances = await getBalances([bToken, bTokenCollateral], [liquidator, borrower]);
+      const result = await liquidateFresh(bToken, liquidator, borrower, repayAmount, bTokenCollateral);
+      const afterBalances = await getBalances([bToken, bTokenCollateral], [liquidator, borrower]);
       expect(result).toSucceed();
       expect(result).toHaveLog('LiquidateBorrow', {
         liquidator: liquidator,
         borrower: borrower,
         repayAmount: repayAmount.toString(),
-        cTokenCollateral: cTokenCollateral._address,
+        bTokenCollateral: bTokenCollateral._address,
         seizeTokens: seizeTokens.toString()
       });
       expect(result).toHaveLog(['Transfer', 0], {
         from: liquidator,
-        to: cToken._address,
+        to: bToken._address,
         amount: repayAmount.toString()
       });
       expect(result).toHaveLog(['Transfer', 1], {
@@ -161,46 +161,46 @@ describe('CToken', function () {
         amount: seizeTokens.toString()
       });
       expect(afterBalances).toEqual(await adjustBalances(beforeBalances, [
-        [cToken, 'cash', repayAmount],
-        [cToken, 'borrows', -repayAmount],
-        [cToken, liquidator, 'cash', -repayAmount],
-        [cTokenCollateral, liquidator, 'tokens', seizeTokens],
-        [cToken, borrower, 'borrows', -repayAmount],
-        [cTokenCollateral, borrower, 'tokens', -seizeTokens]
+        [bToken, 'cash', repayAmount],
+        [bToken, 'borrows', -repayAmount],
+        [bToken, liquidator, 'cash', -repayAmount],
+        [bTokenCollateral, liquidator, 'tokens', seizeTokens],
+        [bToken, borrower, 'borrows', -repayAmount],
+        [bTokenCollateral, borrower, 'tokens', -seizeTokens]
       ]));
     });
   });
 
   describe('liquidateBorrow', () => {
     it("emits a liquidation failure if borrowed asset interest accrual fails", async () => {
-      await send(cToken.interestRateModel, 'setFailBorrowRate', [true]);
-      await expect(liquidate(cToken, liquidator, borrower, repayAmount, cTokenCollateral)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await send(bToken.interestRateModel, 'setFailBorrowRate', [true]);
+      await expect(liquidate(bToken, liquidator, borrower, repayAmount, bTokenCollateral)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
     });
 
     it("emits a liquidation failure if collateral asset interest accrual fails", async () => {
-      await send(cTokenCollateral.interestRateModel, 'setFailBorrowRate', [true]);
-      await expect(liquidate(cToken, liquidator, borrower, repayAmount, cTokenCollateral)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
+      await send(bTokenCollateral.interestRateModel, 'setFailBorrowRate', [true]);
+      await expect(liquidate(bToken, liquidator, borrower, repayAmount, bTokenCollateral)).rejects.toRevert("revert INTEREST_RATE_MODEL_ERROR");
     });
 
     it("returns error from liquidateBorrowFresh without emitting any extra logs", async () => {
-      await expect(liquidate(cToken, liquidator, borrower, 0, cTokenCollateral)).rejects.toRevert('revert invalid amount');
+      await expect(liquidate(bToken, liquidator, borrower, 0, bTokenCollateral)).rejects.toRevert('revert invalid amount');
     });
 
     it("returns success from liquidateBorrowFresh and transfers the correct amounts", async () => {
-      const beforeBalances = await getBalances([cToken, cTokenCollateral], [liquidator, borrower]);
-      const result = await liquidate(cToken, liquidator, borrower, repayAmount, cTokenCollateral);
+      const beforeBalances = await getBalances([bToken, bTokenCollateral], [liquidator, borrower]);
+      const result = await liquidate(bToken, liquidator, borrower, repayAmount, bTokenCollateral);
       const gasCost = await etherGasCost(result);
-      const afterBalances = await getBalances([cToken, cTokenCollateral], [liquidator, borrower]);
+      const afterBalances = await getBalances([bToken, bTokenCollateral], [liquidator, borrower]);
       expect(result).toSucceed();
       expect(afterBalances).toEqual(await adjustBalances(beforeBalances, [
-        [cToken, 'cash', repayAmount],
-        [cToken, 'borrows', -repayAmount],
-        [cToken, liquidator, 'eth', -gasCost],
-        [cToken, liquidator, 'cash', -repayAmount],
-        [cTokenCollateral, liquidator, 'eth', -gasCost],
-        [cTokenCollateral, liquidator, 'tokens', seizeTokens],
-        [cToken, borrower, 'borrows', -repayAmount],
-        [cTokenCollateral, borrower, 'tokens', -seizeTokens]
+        [bToken, 'cash', repayAmount],
+        [bToken, 'borrows', -repayAmount],
+        [bToken, liquidator, 'eth', -gasCost],
+        [bToken, liquidator, 'cash', -repayAmount],
+        [bTokenCollateral, liquidator, 'eth', -gasCost],
+        [bTokenCollateral, liquidator, 'tokens', seizeTokens],
+        [bToken, borrower, 'borrows', -repayAmount],
+        [bTokenCollateral, borrower, 'tokens', -seizeTokens]
       ]));
     });
   });
@@ -209,24 +209,24 @@ describe('CToken', function () {
     // XXX verify callers are properly checked
 
     it("fails if seize is not allowed", async () => {
-      await send(cToken.comptroller, 'setSeizeAllowed', [false]);
-      await expect(seize(cTokenCollateral, liquidator, borrower, seizeTokens)).rejects.toRevert('revert rejected');
+      await send(bToken.comptroller, 'setSeizeAllowed', [false]);
+      await expect(seize(bTokenCollateral, liquidator, borrower, seizeTokens)).rejects.toRevert('revert rejected');
     });
 
-    it("fails if cTokenBalances[borrower] < amount", async () => {
-      await setBalance(cTokenCollateral, borrower, 1);
-      await expect(seize(cTokenCollateral, liquidator, borrower, seizeTokens)).rejects.toRevert("revert subtraction underflow");
+    it("fails if bTokenBalances[borrower] < amount", async () => {
+      await setBalance(bTokenCollateral, borrower, 1);
+      await expect(seize(bTokenCollateral, liquidator, borrower, seizeTokens)).rejects.toRevert("revert subtraction underflow");
     });
 
-    it("fails if cTokenBalances[liquidator] overflows", async () => {
-      await setBalance(cTokenCollateral, liquidator, UInt256Max());
-      await expect(seize(cTokenCollateral, liquidator, borrower, seizeTokens)).rejects.toRevert("revert addition overflow");
+    it("fails if bTokenBalances[liquidator] overflows", async () => {
+      await setBalance(bTokenCollateral, liquidator, UInt256Max());
+      await expect(seize(bTokenCollateral, liquidator, borrower, seizeTokens)).rejects.toRevert("revert addition overflow");
     });
 
     it("succeeds, updates balances, and emits Transfer event", async () => {
-      const beforeBalances = await getBalances([cTokenCollateral], [liquidator, borrower]);
-      const result = await seize(cTokenCollateral, liquidator, borrower, seizeTokens);
-      const afterBalances = await getBalances([cTokenCollateral], [liquidator, borrower]);
+      const beforeBalances = await getBalances([bTokenCollateral], [liquidator, borrower]);
+      const result = await seize(bTokenCollateral, liquidator, borrower, seizeTokens);
+      const afterBalances = await getBalances([bTokenCollateral], [liquidator, borrower]);
       expect(result).toSucceed();
       expect(result).toHaveLog('Transfer', {
         from: borrower,
@@ -234,8 +234,8 @@ describe('CToken', function () {
         amount: seizeTokens.toString()
       });
       expect(afterBalances).toEqual(await adjustBalances(beforeBalances, [
-        [cTokenCollateral, liquidator, 'tokens', seizeTokens],
-        [cTokenCollateral, borrower, 'tokens', -seizeTokens]
+        [bTokenCollateral, liquidator, 'tokens', seizeTokens],
+        [bTokenCollateral, borrower, 'tokens', -seizeTokens]
       ]));
     });
   });

@@ -9,9 +9,9 @@ import "./EIP20NonStandardInterface.sol";
 import "./InterestRateModel.sol";
 
 /**
- * @title Compound's BToken Contract
+ * @title Blueberry's BToken Contract
  * @notice Abstract base for BTokens
- * @author Compound
+ * @author Compound (Modifed by Blueberry)
  */
 contract BToken is BTokenInterface, Exponential, TokenErrorReporter {
     /**
@@ -962,7 +962,7 @@ contract BToken is BTokenInterface, Exponential, TokenErrorReporter {
         totalReserves = totalReservesNew;
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
-        // Restrict reducing reserves in wrapped token. Implementations except `CWrappedNative` won't use parameter `isNative`.
+        // Restrict reducing reserves in wrapped token. Implementations except `BWrappedNative` won't use parameter `isNative`.
         doTransferOut(admin, reduceAmount, false);
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);

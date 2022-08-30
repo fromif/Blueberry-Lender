@@ -5,7 +5,7 @@ const {
 
 const {
   makeToken,
-  makeCToken,
+  makeBToken,
   makeCurveSwap,
   makePriceOracle,
   makeMockRegistry
@@ -16,7 +16,7 @@ describe('PriceOracleProxy', () => {
   const ethAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
   let root, accounts;
-  let oracle, backingOracle, cEth, cDai, cOther;
+  let oracle, backingOracle, bEth, bDai, bOther;
   let crvLP, crvLP2, crvSwap, crvSwap2, yv1, yv1CrvLP, yv2, yv2CrvLP;
   let cCrvLP, cCrvLP2, cYv1, cYv1CrvLP, cYv2, cYv2CrvLP;
   let mockAggregator;
@@ -26,9 +26,9 @@ describe('PriceOracleProxy', () => {
 
   beforeEach(async () => {
     [root, ...accounts] = saddle.accounts;
-    cEth = await makeCToken({kind: "cether", comptrollerOpts: {kind: "v1-no-proxy"}, supportMarket: true});
-    cDai = await makeCToken({comptroller: cEth.comptroller, supportMarket: true});
-    cOther = await makeCToken({comptroller: cEth.comptroller, supportMarket: true});
+    bEth = await makeBToken({kind: "bether", comptrollerOpts: {kind: "v1-no-proxy"}, supportMarket: true});
+    bDai = await makeBToken({comptroller: bEth.comptroller, supportMarket: true});
+    bOther = await makeBToken({comptroller: bEth.comptroller, supportMarket: true});
     mockAggregator = await makeMockRegistry();
 
     crvSwap = await makeCurveSwap({price: crvLPPrice});
@@ -39,19 +39,19 @@ describe('PriceOracleProxy', () => {
     yv1CrvLP = await makeToken({kind: 'yvaultToken', yvOpts: {underlying: crvLP, price: yvPrice}});
     yv2 = await makeToken({kind: 'yvaultToken', yvOpts: {version: 'v2', price: yvPrice}});
     yv2CrvLP = await makeToken({kind: 'yvaultToken', yvOpts: {version: 'v2', underlying: crvLP, price: yvPrice}});
-    cCrvLP = await makeCToken({comptroller: cEth.comptroller, supportMarket: true, underlying: crvLP}); // ETH base
-    cCrvLP2 = await makeCToken({comptroller: cEth.comptroller, supportMarket: true, underlying: crvLP2}); // USD base
-    cYv1 = await makeCToken({comptroller: cEth.comptroller, supportMarket: true, underlying: yv1});
-    cYv1CrvLP = await makeCToken({comptroller: cEth.comptroller, supportMarket: true, underlying: yv1CrvLP});
-    cYv2 = await makeCToken({comptroller: cEth.comptroller, supportMarket: true, underlying: yv2});
-    cYv2CrvLP = await makeCToken({comptroller: cEth.comptroller, supportMarket: true, underlying: yv2CrvLP});
+    cCrvLP = await makeBToken({comptroller: bEth.comptroller, supportMarket: true, underlying: crvLP}); // ETH base
+    cCrvLP2 = await makeBToken({comptroller: bEth.comptroller, supportMarket: true, underlying: crvLP2}); // USD base
+    cYv1 = await makeBToken({comptroller: bEth.comptroller, supportMarket: true, underlying: yv1});
+    cYv1CrvLP = await makeBToken({comptroller: bEth.comptroller, supportMarket: true, underlying: yv1CrvLP});
+    cYv2 = await makeBToken({comptroller: bEth.comptroller, supportMarket: true, underlying: yv2});
+    cYv2CrvLP = await makeBToken({comptroller: bEth.comptroller, supportMarket: true, underlying: yv2CrvLP});
 
     backingOracle = await makePriceOracle();
     oracle = await deploy('PriceOracleProxy',
       [
         root,
         backingOracle._address,
-        cEth._address,
+        bEth._address,
         mockAggregator._address
       ]
      );
@@ -68,9 +68,9 @@ describe('PriceOracleProxy', () => {
       expect(configuredOracle).toEqual(backingOracle._address);
     });
 
-    it("sets address of cEth", async () => {
-      let configuredCEther = await call(oracle, "cEthAddress");
-      expect(configuredCEther).toEqual(cEth._address);
+    it("sets address of bEth", async () => {
+      let configuredBEther = await call(oracle, "bEthAddress");
+      expect(configuredBEther).toEqual(bEth._address);
     });
 
     it("sets address of registry", async () => {
@@ -80,16 +80,16 @@ describe('PriceOracleProxy', () => {
   });
 
   describe("getUnderlyingPrice", () => {
-    let setAndVerifyBackingPrice = async (cToken, price) => {
+    let setAndVerifyBackingPrice = async (bToken, price) => {
       await send(
         backingOracle,
         "setUnderlyingPrice",
-        [cToken._address, etherMantissa(price)]);
+        [bToken._address, etherMantissa(price)]);
 
       let backingOraclePrice = await call(
         backingOracle,
         "assetPrices",
-        [cToken.underlying._address]);
+        [bToken.underlying._address]);
 
       expect(Number(backingOraclePrice)).toEqual(price * 1e18);
     };
@@ -107,8 +107,8 @@ describe('PriceOracleProxy', () => {
         [[token], [base], [quote]]);
     }
 
-    it("always returns 1e18 for cEth", async () => {
-      await readAndVerifyProxyPrice(cEth, 1);
+    it("always returns 1e18 for bEth", async () => {
+      await readAndVerifyProxyPrice(bEth, 1);
     });
 
     it("gets price for ETH based cCrvLP", async () => {
@@ -173,7 +173,7 @@ describe('PriceOracleProxy', () => {
     });
 
     it("returns 0 for token without a price", async () => {
-      let unlistedToken = await makeCToken({comptroller: cEth.comptroller});
+      let unlistedToken = await makeBToken({comptroller: bEth.comptroller});
 
       await readAndVerifyProxyPrice(unlistedToken, 0);
     });

@@ -3,9 +3,9 @@ pragma solidity ^0.5.16;
 import "./BCapableErc20.sol";
 
 /**
- * @title Compound's CCapableErc20Delegate Contract
+ * @title Blueberry's BCapableErc20Delegate Contract
  * @notice BTokens which wrap an EIP-20 underlying and are delegated to
- * @author Compound
+ * @author Blueberry
  */
 contract BCapableErc20Delegate is BCapableErc20 {
     /**

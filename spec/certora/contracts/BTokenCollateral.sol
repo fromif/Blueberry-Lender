@@ -1,9 +1,9 @@
 pragma solidity ^0.5.16;
 
-import "../../../contracts/CErc20Immutable.sol";
+import "../../../contracts/BErc20Immutable.sol";
 import "../../../contracts/EIP20Interface.sol";
 
-contract CTokenCollateral is CErc20Immutable {
+contract BTokenCollateral is BErc20Immutable {
     constructor(
         address underlying_,
         ComptrollerInterface comptroller_,
@@ -15,7 +15,7 @@ contract CTokenCollateral is CErc20Immutable {
         address payable admin_
     )
         public
-        CErc20Immutable(
+        BErc20Immutable(
             underlying_,
             comptroller_,
             interestRateModel_,

@@ -3,8 +3,8 @@ pragma solidity ^0.5.16;
 import "./BWrappedNative.sol";
 
 /**
- * @title Compound's Maximillion Contract
- * @author Compound
+ * @title Blueberry's Maximillion Contract
+ * @author Compound (Modified by Blueberry)
  */
 contract Maximillion {
     /**

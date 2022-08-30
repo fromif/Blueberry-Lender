@@ -2,7 +2,7 @@ import { Event } from '../Event';
 import { addAction, describeUser, World } from '../World';
 import { decodeCall, getPastEvents } from '../Contract';
 import { BToken, BTokenScenario } from '../Contract/BToken';
-import { CErc20Delegate } from '../Contract/CErc20Delegate'
+import { BErc20Delegate } from '../Contract/BErc20Delegate'
 import { invoke, Sendable } from '../Invokation';
 import {
   getAddressV,
@@ -31,56 +31,56 @@ async function genBTokenDelegate(world: World, from: string, event: Event): Prom
 
   world = addAction(
     world,
-    `Added cToken ${delegateData.name} (${delegateData.contract}) at address ${cTokenDelegate._address}`,
+    `Added bToken ${delegateData.name} (${delegateData.contract}) at address ${bTokenDelegate._address}`,
     delegateData.invokation
   );
 
   return world;
 }
 
-async function verifyCTokenDelegate(world: World, cTokenDelegate: CErc20Delegate, name: string, contract: string, apiKey: string): Promise<World> {
+async function verifyBTokenDelegate(world: World, bTokenDelegate: BErc20Delegate, name: string, contract: string, apiKey: string): Promise<World> {
   if (world.isLocalNetwork()) {
     world.printer.printLine(`Politely declining to verify on local network: ${world.network}.`);
   } else {
-    await verify(world, apiKey, name, contract, cTokenDelegate._address);
+    await verify(world, apiKey, name, contract, bTokenDelegate._address);
   }
 
   return world;
 }
 
-export function cTokenDelegateCommands() {
+export function bTokenDelegateCommands() {
   return [
-    new Command<{ cTokenDelegateParams: EventV }>(`
+    new Command<{ bTokenDelegateParams: EventV }>(`
         #### Deploy
 
-        * "CTokenDelegate Deploy ...cTokenDelegateParams" - Generates a new CTokenDelegate
-          * E.g. "CTokenDelegate Deploy CDaiDelegate cDAIDelegate"
+        * "BTokenDelegate Deploy ...bTokenDelegateParams" - Generates a new BTokenDelegate
+          * E.g. "BTokenDelegate Deploy BDaiDelegate bDAIDelegate"
       `,
       "Deploy",
-      [new Arg("cTokenDelegateParams", getEventV, { variadic: true })],
-      (world, from, { cTokenDelegateParams }) => genCTokenDelegate(world, from, cTokenDelegateParams.val)
+      [new Arg("bTokenDelegateParams", getEventV, { variadic: true })],
+      (world, from, { bTokenDelegateParams }) => genBTokenDelegate(world, from, bTokenDelegateParams.val)
     ),
-    new View<{ cTokenDelegateArg: StringV, apiKey: StringV }>(`
+    new View<{ bTokenDelegateArg: StringV, apiKey: StringV }>(`
         #### Verify
 
-        * "CTokenDelegate <cTokenDelegate> Verify apiKey:<String>" - Verifies CTokenDelegate in Etherscan
-          * E.g. "CTokenDelegate cDaiDelegate Verify "myApiKey"
+        * "BTokenDelegate <bTokenDelegate> Verify apiKey:<String>" - Verifies BTokenDelegate in Etherscan
+          * E.g. "BTokenDelegate bDaiDelegate Verify "myApiKey"
       `,
       "Verify",
       [
-        new Arg("cTokenDelegateArg", getStringV),
+        new Arg("bTokenDelegateArg", getStringV),
         new Arg("apiKey", getStringV)
       ],
-      async (world, { cTokenDelegateArg, apiKey }) => {
-        let [cToken, name, data] = await getCTokenDelegateData(world, cTokenDelegateArg.val);
+      async (world, { bTokenDelegateArg, apiKey }) => {
+        let [bToken, name, data] = await getBTokenDelegateData(world, bTokenDelegateArg.val);
 
-        return await verifyCTokenDelegate(world, cToken, name, data.get('contract')!, apiKey.val);
+        return await verifyBTokenDelegate(world, bToken, name, data.get('contract')!, apiKey.val);
       },
       { namePos: 1 }
     ),
   ];
 }
 
-export async function processCTokenDelegateEvent(world: World, event: Event, from: string | null): Promise<World> {
-  return await processCommandEvent<any>("CTokenDelegate", cTokenDelegateCommands(), world, event, from);
+export async function processBTokenDelegateEvent(world: World, event: Event, from: string | null): Promise<World> {
+  return await processCommandEvent<any>("BTokenDelegate", bTokenDelegateCommands(), world, event, from);
 }

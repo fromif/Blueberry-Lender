@@ -1,11 +1,11 @@
 
 Test "Check Name"
     Comp Deploy Geoff
-    Assert Equal (Comp Name) "Cream"
+    Assert Equal (Comp Name) "Blueberry"
 
 Test "Check Symbol"
     Comp Deploy Geoff
-    Assert Equal (Comp Symbol) "CREAM"
+    Assert Equal (Comp Symbol) "BLB"
 
 Test "Check Decimals"
     Comp Deploy Geoff

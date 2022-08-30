@@ -110,7 +110,7 @@ export function erc20Fetchers() {
 
         * "Erc20 <Erc20> TotalSupply" - Returns the ERC-20 token's total supply
           * E.g. "Erc20 ZRX TotalSupply"
-          * E.g. "Erc20 cZRX TotalSupply"
+          * E.g. "Erc20 bZRX TotalSupply"
       `,
       "TotalSupply",
       [
@@ -124,8 +124,8 @@ export function erc20Fetchers() {
 
         * "Erc20 <Erc20> TokenBalance <Address>" - Returns the ERC-20 token balance of a given address
           * E.g. "Erc20 ZRX TokenBalance Geoff" - Returns a user's ZRX balance
-          * E.g. "Erc20 cZRX TokenBalance Geoff" - Returns a user's cZRX balance
-          * E.g. "Erc20 ZRX TokenBalance cZRX" - Returns cZRX's ZRX balance
+          * E.g. "Erc20 bZRX TokenBalance Geoff" - Returns a user's bZRX balance
+          * E.g. "Erc20 ZRX TokenBalance bZRX" - Returns bZRX's ZRX balance
       `,
       "TokenBalance",
       [
@@ -140,8 +140,8 @@ export function erc20Fetchers() {
 
         * "Erc20 <Erc20> Allowance owner:<Address> spender:<Address>" - Returns the ERC-20 allowance from owner to spender
           * E.g. "Erc20 ZRX Allowance Geoff Torrey" - Returns the ZRX allowance of Geoff to Torrey
-          * E.g. "Erc20 cZRX Allowance Geoff Coburn" - Returns the cZRX allowance of Geoff to Coburn
-          * E.g. "Erc20 ZRX Allowance Geoff cZRX" - Returns the ZRX allowance of Geoff to the cZRX cToken
+          * E.g. "Erc20 bZRX Allowance Geoff Coburn" - Returns the bZRX allowance of Geoff to Coburn
+          * E.g. "Erc20 ZRX Allowance Geoff bZRX" - Returns the ZRX allowance of Geoff to the bZRX bToken
       `,
       "Allowance",
       [

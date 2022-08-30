@@ -6,7 +6,7 @@ interface ComptrollerMethods {
   getAccountLiquidity(string): Callable<{0: number, 1: number, 2: number}>
   getHypotheticalAccountLiquidity(account: string, asset: string, redeemTokens: encodedNumber, borrowAmount: encodedNumber): Callable<{0: number, 1: number, 2: number}>
   membershipLength(string): Callable<string>
-  checkMembership(user: string, cToken: string): Callable<string>
+  checkMembership(user: string, bToken: string): Callable<string>
   getAssetsIn(string): Callable<string[]>
   admin(): Callable<string>
   oracle(): Callable<string>
@@ -24,7 +24,7 @@ interface ComptrollerMethods {
   _setCloseFactor(encodedNumber): Sendable<number>
   enterMarkets(markets: string[]): Sendable<number>
   exitMarket(market: string): Sendable<number>
-  updateCTokenVersion(cToken: string, version: encodedNumber): Sendable<void>
+  updateBTokenVersion(bToken: string, version: encodedNumber): Sendable<void>
   fastForward(encodedNumber): Sendable<number>
   _setPendingImplementation(string): Sendable<number>
   comptrollerImplementation(): Callable<string>
@@ -47,10 +47,10 @@ interface ComptrollerMethods {
   seizeGuardianPaused(): Callable<boolean>
   mintGuardianPaused(market: string): Callable<boolean>
   borrowGuardianPaused(market: string): Callable<boolean>
-  _setMarketSupplyCaps(cTokens:string[], supplyCaps:encodedNumber[]): Sendable<void>
+  _setMarketSupplyCaps(bTokens:string[], supplyCaps:encodedNumber[]): Sendable<void>
   supplyCapGuardian(): Callable<string>
   supplyCaps(string): Callable<string>
-  _setMarketBorrowCaps(cTokens:string[], borrowCaps:encodedNumber[]): Sendable<void>
+  _setMarketBorrowCaps(bTokens:string[], borrowCaps:encodedNumber[]): Sendable<void>
   borrowCapGuardian(): Callable<string>
   borrowCaps(string): Callable<string>
   _setCreditLimit(protocol: string, market: string, creditLimit: encodedNumber): Sendable<void>
