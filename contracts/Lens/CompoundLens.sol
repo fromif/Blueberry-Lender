@@ -12,7 +12,7 @@ interface CSLPInterface {
     function claimSushi(address) external returns (uint256);
 }
 
-interface BTokenInterface {
+interface CBTokenInterface {
     function claimComp(address) external returns (uint256);
 }
 
