@@ -1,18 +1,16 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import { CONTRACT_NAMES } from "../../constants";
-import { Unitroller } from "../../typechain-types";
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+const { CONTRACT_NAMES } = require("../../constants");
 
 describe("admin / _setPendingAdmin / _acceptAdmin", () => {
-  let root: SignerWithAddress, accounts: SignerWithAddress[];
-  let comptroller: Unitroller;
+  let root, accounts;
+  let comptroller;
   beforeEach(async () => {
     [root, ...accounts] = await ethers.getSigners();
     const Comptroller = await ethers.getContractFactory(
       CONTRACT_NAMES.UNITROLLER
     );
-    comptroller = <Unitroller>await Comptroller.deploy();
+    comptroller = await Comptroller.deploy();
     await comptroller.deployed();
   });
 
