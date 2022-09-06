@@ -68,7 +68,7 @@ async function makeComptroller(opts = {}) {
 
     await unitroller._setPendingImplementation(comptroller.address);
     await comptroller._become(unitroller.address);
-    // // mergeInterface(unitroller, comptroller);
+    // mergeInterface(unitroller, comptroller);
     await comptroller._setLiquidationIncentive(liquidationIncentive.toString());
     await comptroller._setCloseFactor(closeFactor.toString());
     await comptroller._setPriceOracle(priceOracle.address);
@@ -305,7 +305,12 @@ async function makeBToken(opts = {}) {
 
   if (opts.underlyingPrice) {
     const price = etherMantissa(opts.underlyingPrice);
-    await comptroller.priceOracle.setUnderlyingPrice(bToken.address, price);
+    const priceOracleAddr = await comptroller.oracle();
+    const priceOracle = await ethers.getContractAt(
+      CONTRACT_NAMES.SIMPLE_PRICE_ORACLE,
+      priceOracleAddr
+    );
+    await priceOracle.setUnderlyingPrice(bToken.address, price);
   }
 
   if (opts.collateralFactor) {
