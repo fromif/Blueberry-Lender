@@ -581,11 +581,17 @@ async function makeToken(opts = {}) {
 //   return await deploy("MockRegistry", [answer]);
 // }
 
-// async function makeLiquidityMining(opts = {}) {
-//   const comptroller =
-//     opts.comptroller || (await makeComptroller(opts.comptrollerOpts));
-//   return await deploy("MockLiquidityMining", [comptroller._address]);
-// }
+async function makeLiquidityMining(opts = {}) {
+  const comptroller =
+    opts.comptroller || (await makeComptroller(opts.comptrollerOpts));
+  const MockLiquidityMining = await ethers.getContractFactory(
+    CONTRACT_NAMES.MOCK_LIQUIDITY_MINING
+  );
+  const mockLiquidityMining = await MockLiquidityMining.deploy(
+    comptroller.address
+  );
+  return mockLiquidityMining;
+}
 
 // async function makeEvilAccount(opts = {}) {
 //   const crEth = opts.crEth || (await makeCToken({ kind: "cether" }));
@@ -820,12 +826,19 @@ async function quickMint(bToken, minter, mintAmount, opts = {}) {
 //   return send(cToken, "redeemUnderlying", [redeemAmount], { from: redeemer });
 // }
 
-// async function setOraclePrice(cToken, price) {
-//   return send(cToken.comptroller.priceOracle, "setUnderlyingPrice", [
-//     cToken._address,
-//     etherMantissa(price),
-//   ]);
-// }
+async function setOraclePrice(bToken, price) {
+  const comptrollerAddr = await bToken.comptroller();
+  const comptroller = await ethers.getContractAt(
+    CONTRACT_NAMES.COMPTROLLER,
+    comptrollerAddr
+  );
+  const oracleAddr = await comptroller.oracle();
+  const oracle = await ethers.getContractAt(
+    CONTRACT_NAMES.SIMPLE_PRICE_ORACLE,
+    oracleAddr
+  );
+  await oracle.setUnderlyingPrice(bToken.address, etherMantissa(price));
+}
 
 // async function setBorrowRate(cToken, rate) {
 //   return send(cToken.interestRateModel, "setBorrowRate", [etherMantissa(rate)]);
@@ -883,9 +896,9 @@ module.exports = {
   //   makeMockReference,
   //   makeMockRegistry,
   //   makeFlashloanReceiver,
-  //   makeToken,
+  makeToken,
   //   makeCurveSwap,
-  //   makeLiquidityMining,
+  makeLiquidityMining,
   //   makeEvilAccount,
   //   makeEvilAccount2,
   //   makeCTokenAdmin,
@@ -911,7 +924,7 @@ module.exports = {
   //   quickRedeem,
   //   quickRedeemUnderlying,
 
-  //   setOraclePrice,
+  setOraclePrice,
   //   setBorrowRate,
   //   getBorrowRate,
   //   getSupplyRate,

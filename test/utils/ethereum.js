@@ -1,6 +1,6 @@
 "use strict";
 
-const ethers = require("ethers");
+const { ethers } = require("hardhat");
 const BigNumber = ethers.BigNumber;
 
 function UInt256Max() {
@@ -34,12 +34,12 @@ async function etherBalance(addr) {
 //   return etherMantissa(num, 1e36);
 // }
 function etherMantissa(num, scale = 18) {
+  if (num < 0) return BigNumber.from(2).pow(256).add(num);
   let denominator = 0;
   if (num != Math.floor(num)) {
     denominator = 6;
     num = num * 10 ** denominator;
   }
-  // if (num < 0) return BigNumber.from(2).pow(256).add(num);
   return BigNumber.from(num).mul(BigNumber.from(10).pow(scale - denominator));
 }
 
@@ -177,5 +177,5 @@ module.exports = {
 
   // both,
   // sendFallback,
-  // UInt256Max,
+  UInt256Max,
 };

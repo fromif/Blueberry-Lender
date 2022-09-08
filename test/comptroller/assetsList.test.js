@@ -89,9 +89,10 @@ describe("assetListTest", () => {
     it("properly emits events", async () => {
       const result1 = await enterAndCheckMarkets([OMG], [OMG]);
       const result2 = await enterAndCheckMarkets([OMG], [OMG]);
-      expect(result1)
-        .to.emit(comptroller, "MarketEntered")
-        .withArgs(OMG.address, customer.address);
+      const receipt1 = await result1.wait();
+      expect(receipt1.events[0].event).to.be.equal("MarketEntered");
+      expect(receipt1.events[0].args.bToken).to.be.equal(OMG.address);
+      expect(receipt1.events[0].args.account).to.be.equal(customer.address);
       const receipt2 = await result2.wait();
       expect(receipt2.events.toString()).to.be.equal("");
     });

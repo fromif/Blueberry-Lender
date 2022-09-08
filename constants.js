@@ -32,7 +32,8 @@ const CONTRACT_NAMES = {
     "BCollateralCapErc20CheckRepayDelegateHarness",
   MOCK_REFERENCE: "MockReference",
   MOCK_BTOKEN_ADMIN: "MockBTokenAdmin",
-  CURVE_SWAP_HARNESS: "CurveSwapHarness"
+  CURVE_SWAP_HARNESS: "CurveSwapHarness",
+  MOCK_LIQUIDITY_MINING: "MockLiquidityMining",
 };
 
 module.exports = { CONTRACT_NAMES };
