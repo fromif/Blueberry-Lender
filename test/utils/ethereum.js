@@ -20,12 +20,12 @@ async function etherBalance(addr) {
   return await web3.eth.getBalance(addr);
 }
 
-// async function etherGasCost(receipt) {
-//   const tx = await web3.eth.getTransaction(receipt.transactionHash);
-//   const gasUsed = BigNumber(receipt.gasUsed);
-//   const gasPrice = BigNumber(tx.gasPrice);
-//   return gasUsed.times(gasPrice);
-// }
+async function etherGasCost(receipt) {
+  console.log(receipt);
+  const gasUsed = BigNumber.from(receipt.gasUsed);
+  const gasPrice = BigNumber.from(receipt.effectiveGasPrice);
+  return gasUsed.mul(gasPrice);
+}
 
 // function etherExp(num) {
 //   return etherMantissa(num, 1e18);
@@ -37,10 +37,12 @@ function etherMantissa(num, scale = 18) {
   if (num < 0) return BigNumber.from(2).pow(256).add(num);
   let denominator = 0;
   if (num != Math.floor(num)) {
-    denominator = 6;
+    denominator = 18;
     num = num * 10 ** denominator;
   }
-  return BigNumber.from(num).mul(BigNumber.from(10).pow(scale - denominator));
+  return BigNumber.from(num.toString()).mul(
+    BigNumber.from(10).pow(scale - denominator)
+  );
 }
 
 function etherUnsigned(num) {
@@ -153,8 +155,8 @@ function etherUnsigned(num) {
 module.exports = {
   // address,
   // encodeParameters,
-  // etherBalance,
-  // etherGasCost,
+  etherBalance,
+  etherGasCost,
   // etherExp,
   // etherDouble,
   etherMantissa,

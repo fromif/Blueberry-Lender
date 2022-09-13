@@ -6,6 +6,7 @@ import "./ComptrollerScenario.sol";
 contract BEtherHarness is BEther {
     uint256 harnessExchangeRate;
     uint256 public blockNumber = 100000;
+    address public underlying;
 
     mapping(address => bool) public failTransferToAddresses;
 

@@ -531,7 +531,7 @@ contract BErc20DelegateHarness is BErc20Delegate {
     }
 }
 
-contract BCollaterlaCapErc20CheckRepayDelegateHarness is BCollateralCapErc20CheckRepayDelegate {
+contract BCollateralCapErc20CheckRepayDelegateHarness is BCollateralCapErc20CheckRepayDelegate {
     event Log(string x, address y);
     event Log(string x, uint256 y);
 

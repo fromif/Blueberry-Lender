@@ -1,8 +1,11 @@
 const CONTRACT_NAMES = {
   COMPTROLLER: "Comptroller",
-  BOOL_COMPTROLLER: "BoolComptroller",
-  FALSE_MARKER_METHOD_COMPTROLLER: "FalseMarkerMethodComptroller",
+  COMPTROLLER_G1: "ComptrollerG1",
   COMPTROLLER_HARNESS: "ComptrollerHarness",
+  BOOL_COMPTROLLER: "BoolComptroller",
+  ECHO_TYPES_COMPTROLLER: "EchoTypesComptroller",
+  COMP_SCENARIO: "CompScenario",
+  FALSE_MARKER_METHOD_COMPTROLLER: "FalseMarkerMethodComptroller",
   SIMPLE_PRICE_ORACLE: "SimplePriceOracle",
   UNITROLLER: "Unitroller",
   INTEREST_RATE_MODEL_HARNESS: "InterestRateModelHarness",
@@ -25,7 +28,6 @@ const CONTRACT_NAMES = {
   BCOLLATERAL_CAP_ERC20_DELEGATOR: "BCollateralCapErc20Delegator",
   BCOLLATERAL_CAP_ERC20_NO_INTEREST_DELEGATE_HARNESS:
     "BCollateralCapErc20NoInterestDelegateHarness",
-  BCOLLATERAL_CAP_ERC20_DELEGATOR: "BCollateralCapErc20Delegator",
   BWRAPPED_NATIVE_DELEGATE_HARNESS: "BWrappedNativeDelegateHarness",
   BWRAPPED_NATIVE_DELEGATOR: "BWrappedNativeDelegator",
   BCOLLATERAL_CAP_ERC20_CHECK_REPAY_DELEGATE_HARNESS:
@@ -34,6 +36,8 @@ const CONTRACT_NAMES = {
   MOCK_BTOKEN_ADMIN: "MockBTokenAdmin",
   CURVE_SWAP_HARNESS: "CurveSwapHarness",
   MOCK_LIQUIDITY_MINING: "MockLiquidityMining",
+  EVIL_ACCOUNT: "EvilAccount",
+  EVIL_ACCOUNT2: "EvilAccount2",
 };
 
 module.exports = { CONTRACT_NAMES };

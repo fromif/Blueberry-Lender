@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-web3");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -14,5 +15,10 @@ module.exports = {
         },
       },
     ],
+  },
+  networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
   },
 };

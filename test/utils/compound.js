@@ -107,7 +107,7 @@ async function makeBToken(opts = {}) {
         name,
         symbol,
         decimals,
-        admin
+        admin.address
       );
       await bToken.deployed();
       break;
@@ -159,13 +159,13 @@ async function makeBToken(opts = {}) {
         name,
         symbol,
         decimals,
-        admin,
+        admin.address,
         bDelegatee.address,
-        "0x0"
+        "0x00"
       );
       await bDelegator.deployed();
       bToken = await ethers.getContractAt(
-        CONTRACT_NAMES.BCollateralCapErc20DelegateHarness,
+        CONTRACT_NAMES.BCOLLATERAL_CAP_ERC20_DELEGATE_HARNESS,
         bDelegator.address
       );
       version = 1; // ccollateralcap's version is 1
@@ -238,7 +238,7 @@ async function makeBToken(opts = {}) {
       underlying = await makeToken({ kind: "evil" });
       const BCollateralCapErc20CheckRepayDelegateHarness =
         await ethers.getContractFactory(
-          CONTRACT_NAMES.BCOLLATERAL_CAP_ERC20_CHECK_REPAY_DELEGATE_HARNESS
+          "BCollateralCapErc20CheckRepayDelegateHarness"
         );
       bDelegatee = await BCollateralCapErc20CheckRepayDelegateHarness.deploy();
       await bDelegatee.deployed();
@@ -254,9 +254,9 @@ async function makeBToken(opts = {}) {
         name,
         symbol,
         decimals,
-        admin,
+        admin.address,
         bDelegatee.address,
-        "0x0"
+        "0x00"
       );
       await bDelegator.deployed();
 
@@ -351,7 +351,7 @@ async function makeInterestRateModel(opts = {}) {
       CONTRACT_NAMES.FALSE_MARKER_METHOD_INTEREST_RATE_MODEL
     );
     const falseMarkerMethodInterestRateModel =
-      await FalseMarkerMethodInterestRateModel.deploy(borrowRate);
+      await FalseMarkerMethodInterestRateModel.deploy();
     await falseMarkerMethodInterestRateModel.deployed();
     return falseMarkerMethodInterestRateModel;
   }
@@ -548,7 +548,9 @@ async function makeToken(opts = {}) {
     await lpTokenHarness.deployed();
     return lpTokenHarness;
   } else if (kind == "evil") {
-    const quantity = etherUnsigned(dfn(opts.quantity, 1e25));
+    const quantity = etherUnsigned(
+      dfn(opts.quantity, BigNumber.from(10).pow(25))
+    );
     const decimals = etherUnsigned(dfn(opts.decimals, 18));
     const symbol = opts.symbol || "Evil";
     const name = opts.name || `Evil Token`;
@@ -593,29 +595,39 @@ async function makeLiquidityMining(opts = {}) {
   return mockLiquidityMining;
 }
 
-// async function makeEvilAccount(opts = {}) {
-//   const crEth = opts.crEth || (await makeCToken({ kind: "cether" }));
-//   const crEvil = opts.crEvil || (await makeCToken({ kind: "cevil" }));
-//   const borrowAmount = opts.borrowAmount || etherMantissa(1);
-//   return await deploy("EvilAccount", [
-//     crEth._address,
-//     crEvil._address,
-//     borrowAmount,
-//   ]);
-// }
+async function makeEvilAccount(opts = {}) {
+  const crEth = opts.crEth || (await makeBToken({ kind: "bether" }));
+  const crEvil = opts.crEvil || (await makeBToken({ kind: "bevil" }));
+  const borrowAmount = opts.borrowAmount || etherMantissa(1);
+  const EvilAccount = await ethers.getContractFactory(
+    CONTRACT_NAMES.EVIL_ACCOUNT
+  );
+  const evilAccount = await EvilAccount.deploy(
+    crEth.address,
+    crEvil.address,
+    borrowAmount
+  );
+  await evilAccount.deployed();
+  return evilAccount;
+}
 
-// async function makeEvilAccount2(opts = {}) {
-//   const crWeth = opts.crWeth || (await makeCToken({ kind: "cerc20" }));
-//   const crEvil = opts.crEvil || (await makeCToken({ kind: "cevil" }));
-//   const borrower = opts.borrower;
-//   const repayAmount = opts.repayAmount || etherMantissa(1);
-//   return await deploy("EvilAccount2", [
-//     crWeth._address,
-//     crEvil._address,
-//     borrower,
-//     repayAmount,
-//   ]);
-// }
+async function makeEvilAccount2(opts = {}) {
+  const crWeth = opts.crWeth || (await makeBToken({ kind: "berc20" }));
+  const crEvil = opts.crEvil || (await makeBToken({ kind: "bevil" }));
+  const borrower = opts.borrower;
+  const repayAmount = opts.repayAmount || etherMantissa(1);
+  const EvilAccount2 = await ethers.getContractFactory(
+    CONTRACT_NAMES.EVIL_ACCOUNT2
+  );
+  const evilAccount2 = await EvilAccount2.deploy(
+    crWeth.address,
+    crEvil.address,
+    borrower,
+    repayAmount
+  );
+  await evilAccount2.deployed();
+  return evilAccount2;
+}
 
 // async function makeFlashloanReceiver(opts = {}) {
 //   const { kind = "normal" } = opts || {};
@@ -645,45 +657,43 @@ async function makeLiquidityMining(opts = {}) {
 //   }
 // }
 
-// async function balanceOf(token, account) {
-//   return etherUnsigned(await call(token, "balanceOf", [account]));
-// }
+async function balanceOf(token, account) {
+  return etherUnsigned(await token.balanceOf(account));
+}
 
 // async function collateralTokenBalance(token, account) {
 //   return etherUnsigned(await call(token, "accountCollateralTokens", [account]));
 // }
 
-// async function cash(token) {
-//   return etherUnsigned(await call(token, "getCash", []));
-// }
+async function cash(token) {
+  return etherUnsigned(await token.getCash());
+}
 
-// async function totalSupply(token) {
-//   return etherUnsigned(await call(token, "totalSupply"));
-// }
+async function totalSupply(token) {
+  return etherUnsigned(await token.totalSupply());
+}
 
 // async function totalCollateralTokens(token) {
 //   return etherUnsigned(await call(token, "totalCollateralTokens"));
 // }
 
-// async function borrowSnapshot(cToken, account) {
-//   const { principal, interestIndex } = await call(
-//     cToken,
-//     "harnessAccountBorrows",
-//     [account]
-//   );
-//   return {
-//     principal: etherUnsigned(principal),
-//     interestIndex: etherUnsigned(interestIndex),
-//   };
-// }
+async function borrowSnapshot(bToken, account) {
+  const { principal, interestIndex } = await bToken.harnessAccountBorrows(
+    account
+  );
+  return {
+    principal: etherUnsigned(principal),
+    interestIndex: etherUnsigned(interestIndex),
+  };
+}
 
-// async function totalBorrows(cToken) {
-//   return etherUnsigned(await call(cToken, "totalBorrows"));
-// }
+async function totalBorrows(bToken) {
+  return etherUnsigned(await bToken.totalBorrows());
+}
 
-// async function totalReserves(cToken) {
-//   return etherUnsigned(await call(cToken, "totalReserves"));
-// }
+async function totalReserves(bToken) {
+  return etherUnsigned(await bToken.totalReserves());
+}
 
 async function enterMarkets(bTokens, from) {
   const comptrollerAddr = await bTokens[0].comptroller();
@@ -703,57 +713,64 @@ async function fastForward(bToken, blocks = 5) {
 //   return await send(cToken, "harnessSetBalance", [account, balance]);
 // }
 
-// async function setEtherBalance(cEther, balance) {
-//   const current = await etherBalance(cEther._address);
-//   const root = saddle.account;
-//   expect(
-//     await send(cEther, "harnessDoTransferOut", [root, current])
-//   ).toSucceed();
-//   expect(
-//     await send(cEther, "harnessDoTransferIn", [root, balance], {
-//       value: balance,
-//     })
-//   ).toSucceed();
-// }
+async function setEtherBalance(bEther, balance) {
+  const current = await etherBalance(bEther.address);
+  const root = (await ethers.getSigners())[0];
+  await bEther.harnessDoTransferOut(root.address, current);
+  await bEther.harnessDoTransferIn(root.address, balance, { value: balance });
+}
 
-// async function getBalances(cTokens, accounts) {
-//   const balances = {};
-//   for (let cToken of cTokens) {
-//     const cBalances = (balances[cToken._address] = {});
-//     for (let account of accounts) {
-//       cBalances[account] = {
-//         eth: await etherBalance(account),
-//         cash:
-//           cToken.underlying && (await balanceOf(cToken.underlying, account)),
-//         tokens: await balanceOf(cToken, account),
-//         borrows: (await borrowSnapshot(cToken, account)).principal,
-//       };
-//     }
-//     cBalances[cToken._address] = {
-//       eth: await etherBalance(cToken._address),
-//       cash: await cash(cToken),
-//       tokens: await totalSupply(cToken),
-//       borrows: await totalBorrows(cToken),
-//       reserves: await totalReserves(cToken),
-//     };
-//   }
-//   return balances;
-// }
+async function getBalances(bTokens, accounts) {
+  const balances = {};
+  for (let bToken of bTokens) {
+    const bBalances = (balances[bToken.address] = {});
+    for (let account of accounts) {
+      const bTokenUnderlyingAddr = await bToken.underlying();
+      if (bTokenUnderlyingAddr == ethers.constants.AddressZero) {
+        bBalances[account] = {
+          eth: await etherBalance(account),
+          cash: await etherBalance(account),
+          tokens: await balanceOf(bToken, account),
+          borrows: (await borrowSnapshot(bToken, account)).principal,
+        };
+      } else {
+        const bTokenUnderlying = await ethers.getContractAt(
+          CONTRACT_NAMES.ERC20_HARNESS,
+          bTokenUnderlyingAddr
+        );
+        bBalances[account] = {
+          eth: await etherBalance(account),
+          cash: await balanceOf(bTokenUnderlying, account),
+          tokens: await balanceOf(bToken, account),
+          borrows: (await borrowSnapshot(bToken, account)).principal,
+        };
+      }
+    }
+    bBalances[bToken.address] = {
+      eth: await etherBalance(bToken.address),
+      cash: await cash(bToken),
+      tokens: await totalSupply(bToken),
+      borrows: await totalBorrows(bToken),
+      reserves: await totalReserves(bToken),
+    };
+  }
+  return balances;
+}
 
-// async function adjustBalances(balances, deltas) {
-//   for (let delta of deltas) {
-//     let cToken, account, key, diff;
-//     if (delta.length == 4) {
-//       [cToken, account, key, diff] = delta;
-//     } else {
-//       [cToken, key, diff] = delta;
-//       account = cToken._address;
-//     }
-//     balances[cToken._address][account][key] =
-//       balances[cToken._address][account][key].plus(diff);
-//   }
-//   return balances;
-// }
+async function adjustBalances(balances, deltas) {
+  for (let delta of deltas) {
+    let bToken, account, key, diff;
+    if (delta.length == 4) {
+      [bToken, account, key, diff] = delta;
+    } else {
+      [bToken, key, diff] = delta;
+      account = bToken.address;
+    }
+    balances[bToken.address][account][key] =
+      balances[bToken.address][account][key].plus(diff);
+  }
+  return balances;
+}
 
 async function preApprove(bToken, from, amount, opts = {}) {
   const underlyingAddr = await bToken.underlying();
@@ -840,9 +857,14 @@ async function setOraclePrice(bToken, price) {
   await oracle.setUnderlyingPrice(bToken.address, etherMantissa(price));
 }
 
-// async function setBorrowRate(cToken, rate) {
-//   return send(cToken.interestRateModel, "setBorrowRate", [etherMantissa(rate)]);
-// }
+async function setBorrowRate(bToken, rate) {
+  const interestRateModelAddr = await bToken.interestRateModel();
+  const interestRateModel = await ethers.getContractAt(
+    CONTRACT_NAMES.INTEREST_RATE_MODEL_HARNESS,
+    interestRateModelAddr
+  );
+  await interestRateModel.setBorrowRate(etherMantissa(rate));
+}
 
 // async function getBorrowRate(interestRateModel, cash, borrows, reserves) {
 //   return call(
@@ -866,26 +888,24 @@ async function setOraclePrice(bToken, price) {
 //   );
 // }
 
-// async function pretendBorrow(
-//   cToken,
-//   borrower,
-//   accountIndex,
-//   marketIndex,
-//   principalRaw,
-//   blockNumber = 2e7
-// ) {
-//   await send(cToken, "harnessSetTotalBorrows", [etherUnsigned(principalRaw)]);
-//   await send(cToken, "harnessSetAccountBorrows", [
-//     borrower,
-//     etherUnsigned(principalRaw),
-//     etherMantissa(accountIndex),
-//   ]);
-//   await send(cToken, "harnessSetBorrowIndex", [etherMantissa(marketIndex)]);
-//   await send(cToken, "harnessSetAccrualBlockNumber", [
-//     etherUnsigned(blockNumber),
-//   ]);
-//   await send(cToken, "harnessSetBlockNumber", [etherUnsigned(blockNumber)]);
-// }
+async function pretendBorrow(
+  bToken,
+  borrower,
+  accountIndex,
+  marketIndex,
+  principalRaw,
+  blockNumber = 2e7
+) {
+  await bToken.harnessSetTotalBorrows(etherUnsigned(principalRaw));
+  await bToken.harnessSetAccountBorrows(
+    borrower,
+    etherUnsigned(principalRaw),
+    etherMantissa(accountIndex)
+  );
+  await bToken.harnessSetBorrowIndex(etherMantissa(marketIndex));
+  await bToken.harnessSetAccrualBlockNumber(etherUnsigned(blockNumber));
+  await bToken.harnessSetBlockNumber(etherUnsigned(blockNumber));
+}
 
 module.exports = {
   makeComptroller,
@@ -899,25 +919,25 @@ module.exports = {
   makeToken,
   //   makeCurveSwap,
   makeLiquidityMining,
-  //   makeEvilAccount,
-  //   makeEvilAccount2,
+  makeEvilAccount,
+  makeEvilAccount2,
   //   makeCTokenAdmin,
 
-  //   balanceOf,
+  balanceOf,
   //   collateralTokenBalance,
-  //   totalSupply,
+  totalSupply,
   //   totalCollateralTokens,
-  //   borrowSnapshot,
-  //   totalBorrows,
-  //   totalReserves,
+  borrowSnapshot,
+  totalBorrows,
+  totalReserves,
   enterMarkets,
   fastForward,
   //   setBalance,
-  //   setEtherBalance,
-  //   getBalances,
-  //   adjustBalances,
+  setEtherBalance,
+  getBalances,
+  adjustBalances,
 
-  //   preApprove,
+  preApprove,
   quickMint,
 
   //   preSupply,
@@ -925,8 +945,8 @@ module.exports = {
   //   quickRedeemUnderlying,
 
   setOraclePrice,
-  //   setBorrowRate,
+  setBorrowRate,
   //   getBorrowRate,
   //   getSupplyRate,
-  //   pretendBorrow,
+  pretendBorrow,
 };
