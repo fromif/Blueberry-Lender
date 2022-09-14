@@ -129,9 +129,9 @@ async function makeBToken(opts = {}) {
         name,
         symbol,
         decimals,
-        admin,
+        admin.address,
         bDelegatee.address,
-        "0x0"
+        "0x00"
       );
       await bDelegator.deployed();
       bToken = await ethers.getContractAt(
@@ -222,9 +222,9 @@ async function makeBToken(opts = {}) {
         name,
         symbol,
         decimals,
-        admin,
+        admin.address,
         bDelegatee.address,
-        "0x0"
+        "0x00"
       );
       await bDelegator.deployed();
 
@@ -706,12 +706,11 @@ async function enterMarkets(bTokens, from) {
 
 async function fastForward(bToken, blocks = 5) {
   await bToken.harnessFastForward(blocks);
-  // return await send(cToken, "harnessFastForward", [blocks]);
 }
 
-// async function setBalance(cToken, account, balance) {
-//   return await send(cToken, "harnessSetBalance", [account, balance]);
-// }
+async function setBalance(bToken, account, balance) {
+  return bToken.harnessSetBalance(account, balance);
+}
 
 async function setEtherBalance(bEther, balance) {
   const current = await etherBalance(bEther.address);
@@ -766,8 +765,9 @@ async function adjustBalances(balances, deltas) {
       [bToken, key, diff] = delta;
       account = bToken.address;
     }
-    balances[bToken.address][account][key] =
-      balances[bToken.address][account][key].plus(diff);
+    balances[bToken.address][account][key] = BigNumber.from(
+      balances[bToken.address][account][key]
+    ).add(diff);
   }
   return balances;
 }
@@ -794,54 +794,44 @@ async function quickMint(bToken, minter, mintAmount, opts = {}) {
   if (dfn(opts.exchangeRate)) {
     await bToken.harnessSetExchangeRate(etherMantissa(opts.exchangeRate));
   }
-  await bToken.connect(minter).mint(mintAmount);
+  return bToken.connect(minter).mint(mintAmount);
 }
 
-// async function preSupply(cToken, account, tokens, opts = {}) {
-//   if (dfn(opts.total, true)) {
-//     expect(await send(cToken, "harnessSetTotalSupply", [tokens])).toSucceed();
-//   }
-//   if (dfn(opts.totalCollateralTokens)) {
-//     expect(
-//       await send(cToken, "harnessSetTotalCollateralTokens", [tokens])
-//     ).toSucceed();
-//   }
-//   return send(cToken, "harnessSetBalance", [account, tokens]);
-// }
+async function preSupply(bToken, account, tokens, opts = {}) {
+  if (dfn(opts.total, true)) {
+    await bToken.harnessSetTotalSupply(tokens);
+  }
+  if (dfn(opts.totalCollateralTokens)) {
+    await bToken.harnessSetTotalCollateralTokens(tokens);
+  }
+  return bToken.harnessSetBalance(account, tokens);
+}
 
-// async function quickRedeem(cToken, redeemer, redeemTokens, opts = {}) {
-//   await fastForward(cToken, 1);
+async function quickRedeem(bToken, redeemer, redeemTokens, opts = {}) {
+  await fastForward(bToken, 1);
 
-//   if (dfn(opts.supply, true)) {
-//     expect(await preSupply(cToken, redeemer, redeemTokens, opts)).toSucceed();
-//   }
-//   if (dfn(opts.exchangeRate)) {
-//     expect(
-//       await send(cToken, "harnessSetExchangeRate", [
-//         etherMantissa(opts.exchangeRate),
-//       ])
-//     ).toSucceed();
-//   }
-//   return send(cToken, "redeem", [redeemTokens], { from: redeemer });
-// }
+  if (dfn(opts.supply, true)) {
+    await preSupply(bToken, redeemer.address, redeemTokens, opts);
+  }
+  if (dfn(opts.exchangeRate)) {
+    await bToken.harnessSetExchangeRate(etherMantissa(opts.exchangeRate));
+  }
+  return bToken.connect(redeemer).redeem(redeemTokens);
+}
 
-// async function quickRedeemUnderlying(
-//   cToken,
-//   redeemer,
-//   redeemAmount,
-//   opts = {}
-// ) {
-//   await fastForward(cToken, 1);
+async function quickRedeemUnderlying(
+  bToken,
+  redeemer,
+  redeemAmount,
+  opts = {}
+) {
+  await fastForward(bToken, 1);
 
-//   if (dfn(opts.exchangeRate)) {
-//     expect(
-//       await send(cToken, "harnessSetExchangeRate", [
-//         etherMantissa(opts.exchangeRate),
-//       ])
-//     ).toSucceed();
-//   }
-//   return send(cToken, "redeemUnderlying", [redeemAmount], { from: redeemer });
-// }
+  if (dfn(opts.exchangeRate)) {
+    await bToken.harnessSetExchangeRate(etherMantissa(opts.exchangeRate));
+  }
+  return bToken.connect(redeemer).redeemUnderlying(redeemAmount);
+}
 
 async function setOraclePrice(bToken, price) {
   const comptrollerAddr = await bToken.comptroller();
@@ -932,7 +922,7 @@ module.exports = {
   totalReserves,
   enterMarkets,
   fastForward,
-  //   setBalance,
+  setBalance,
   setEtherBalance,
   getBalances,
   adjustBalances,
@@ -940,9 +930,9 @@ module.exports = {
   preApprove,
   quickMint,
 
-  //   preSupply,
-  //   quickRedeem,
-  //   quickRedeemUnderlying,
+  preSupply,
+  quickRedeem,
+  quickRedeemUnderlying,
 
   setOraclePrice,
   setBorrowRate,

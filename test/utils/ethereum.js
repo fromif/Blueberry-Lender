@@ -21,10 +21,9 @@ async function etherBalance(addr) {
 }
 
 async function etherGasCost(receipt) {
-  console.log(receipt);
-  const gasUsed = BigNumber.from(receipt.gasUsed);
-  const gasPrice = BigNumber.from(receipt.effectiveGasPrice);
-  return gasUsed.mul(gasPrice);
+  const gasLimit = receipt.gasLimit;
+  const gasPrice = receipt.gasPrice;
+  return gasLimit.mul(gasPrice);
 }
 
 // function etherExp(num) {
