@@ -191,15 +191,15 @@ async function makeBToken(opts = {}) {
         name,
         symbol,
         decimals,
-        admin,
+        admin.address,
         bDelegatee.address,
-        "0x0"
+        "0x00"
       );
       await bDelegator.deployed();
 
       bToken = await ethers.getContractAt(
         CONTRACT_NAMES.BCOLLATERAL_CAP_ERC20_NO_INTEREST_DELEGATE_HARNESS,
-        bDleegator.address
+        bDelegator.address
       );
       version = 1; // ccollateralcap's version is 1
       break;
@@ -422,13 +422,13 @@ async function makeMockReference(opts = {}) {
 }
 
 async function makeBTokenAdmin(opts = {}) {
-  const { root = await ethers.getSigners()[0] } = opts || {};
+  const { root = (await ethers.getSigners())[0] } = opts || {};
 
   const admin = opts.admin || root;
   const MockBToken = await ethers.getContractFactory(
     CONTRACT_NAMES.MOCK_BTOKEN_ADMIN
   );
-  const mockBToken = await MockBToken.connect(admin).deploy();
+  const mockBToken = await MockBToken.deploy(admin.address);
   await mockBToken.deployed();
   return mockBToken;
 }
@@ -516,7 +516,11 @@ async function makeToken(opts = {}) {
     await weth9.deployed();
     return weth9;
   } else if (kind == "nonstandard") {
-    const quantity = etherUnsigned(dfn(opts.quantity, 1e25));
+    const quantity = etherUnsigned(
+      dfn(opts.quantity, 1e25).toLocaleString("fullwide", {
+        useGrouping: false,
+      })
+    );
     const decimals = etherUnsigned(dfn(opts.decimals, 18));
     const symbol = opts.symbol || "MITH";
     const name = opts.name || `Erc20 ${symbol}`;
@@ -532,7 +536,11 @@ async function makeToken(opts = {}) {
     await faucetNonStandardToken.deployed();
     return faucetNonStandardToken;
   } else if (kind == "lp") {
-    const quantity = etherUnsigned(dfn(opts.quantity, 1e25));
+    const quantity = etherUnsigned(
+      dfn(opts.quantity, 1e25).toLocaleString("fullwide", {
+        useGrouping: false,
+      })
+    );
     const decimals = etherUnsigned(dfn(opts.decimals, 18));
     const symbol = opts.symbol || "UNI-V2-LP";
     const name = opts.name || `Uniswap v2 LP`;
@@ -629,41 +637,81 @@ async function makeEvilAccount2(opts = {}) {
   return evilAccount2;
 }
 
-// async function makeFlashloanReceiver(opts = {}) {
-//   const { kind = "normal" } = opts || {};
-//   if (kind === "normal") {
-//     return await deploy("FlashloanReceiver", []);
-//   }
-//   if (kind === "flashloan-and-mint") {
-//     return await deploy("FlashloanAndMint", []);
-//   }
-//   if (kind === "flashloan-and-repay-borrow") {
-//     return await deploy("FlashloanAndRepayBorrow", []);
-//   }
-//   if (kind === "flashloan-twice") {
-//     return await deploy("FlashloanTwice", []);
-//   }
-//   if (kind === "native") {
-//     return await deploy("FlashloanReceiverNative");
-//   }
-//   if (kind === "flashloan-and-mint-native") {
-//     return await deploy("FlashloanAndMintNative");
-//   }
-//   if (kind === "flashloan-and-repay-borrow-native") {
-//     return await deploy("FlashloanAndRepayBorrowNative");
-//   }
-//   if (kind === "flashloan-twice-native") {
-//     return await deploy("FlashloanTwiceNative");
-//   }
-// }
+async function makeFlashloanReceiver(opts = {}) {
+  const { kind = "normal" } = opts || {};
+  if (kind === "normal") {
+    const FlashloanReceiver = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_RECEIVER
+    );
+    const contract = await FlashloanReceiver.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "flashloan-and-mint") {
+    const FlashloanAndMint = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_AND_MINT
+    );
+    const contract = await FlashloanAndMint.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "flashloan-and-repay-borrow") {
+    const FlashloanAndRepayBorrow = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_AND_REPAY_BORROW
+    );
+    const contract = await FlashloanAndRepayBorrow.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "flashloan-twice") {
+    const FlashloanTwice = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_TWICE
+    );
+    const contract = await FlashloanTwice.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "native") {
+    const FlashloanReceiverNative = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_RECEIVER_NATIVE
+    );
+    const contract = await FlashloanReceiverNative.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "flashloan-and-mint-native") {
+    const FlashloanAndMintNative = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_AND_MINT_NATIVE
+    );
+    const contract = await FlashloanAndMintNative.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "flashloan-and-repay-borrow-native") {
+    const FlashloanAndRepayBorrowNative = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_AND_REPAY_BORROW_NATIVE
+    );
+    const contract = await FlashloanAndRepayBorrowNative.deploy();
+    await contract.deployed();
+    return contract;
+  }
+  if (kind === "flashloan-twice-native") {
+    const FlashloanTwiceNative = await ethers.getContractFactory(
+      CONTRACT_NAMES.FLASHLOAN_TWICE_NATIVE
+    );
+    const contract = await FlashloanTwiceNative.deploy();
+    await contract.deployed();
+    return contract;
+  }
+}
 
 async function balanceOf(token, account) {
   return etherUnsigned(await token.balanceOf(account));
 }
 
-// async function collateralTokenBalance(token, account) {
-//   return etherUnsigned(await call(token, "accountCollateralTokens", [account]));
-// }
+async function collateralTokenBalance(token, account) {
+  return etherUnsigned(await token.accountCollateralTokens(account));
+}
 
 async function cash(token) {
   return etherUnsigned(await token.getCash());
@@ -673,9 +721,9 @@ async function totalSupply(token) {
   return etherUnsigned(await token.totalSupply());
 }
 
-// async function totalCollateralTokens(token) {
-//   return etherUnsigned(await call(token, "totalCollateralTokens"));
-// }
+async function totalCollateralTokens(token) {
+  return etherUnsigned(await token.totalCollateralTokens());
+}
 
 async function borrowSnapshot(bToken, account) {
   const { principal, interestIndex } = await bToken.harnessAccountBorrows(
@@ -774,14 +822,14 @@ async function adjustBalances(balances, deltas) {
 
 async function preApprove(bToken, from, amount, opts = {}) {
   const underlyingAddr = await bToken.underlying();
-  const Underlying = await ethers.getContractAt(
+  const underlying = await ethers.getContractAt(
     CONTRACT_NAMES.ERC20_HARNESS,
     underlyingAddr
   );
   if (dfn(opts.faucet, true)) {
-    await Underlying.connect(from).harnessSetBalance(from.address, amount);
+    await underlying.connect(from).harnessSetBalance(from.address, amount);
   }
-  await Underlying.connect(from).approve(bToken.address, amount);
+  await underlying.connect(from).approve(bToken.address, amount);
 }
 
 async function quickMint(bToken, minter, mintAmount, opts = {}) {
@@ -900,12 +948,13 @@ async function pretendBorrow(
 module.exports = {
   makeComptroller,
   makeBToken,
+  makeBTokenAdmin,
   makeInterestRateModel,
   makePriceOracle,
   //   makeMockAggregator,
   //   makeMockReference,
   //   makeMockRegistry,
-  //   makeFlashloanReceiver,
+  makeFlashloanReceiver,
   makeToken,
   //   makeCurveSwap,
   makeLiquidityMining,
@@ -914,9 +963,9 @@ module.exports = {
   //   makeCTokenAdmin,
 
   balanceOf,
-  //   collateralTokenBalance,
+  collateralTokenBalance,
   totalSupply,
-  //   totalCollateralTokens,
+  totalCollateralTokens,
   borrowSnapshot,
   totalBorrows,
   totalReserves,

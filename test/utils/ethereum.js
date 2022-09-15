@@ -143,13 +143,12 @@ function etherUnsigned(num) {
 //   return { reply, receipt };
 // }
 
-// async function sendFallback(contract, opts = {}) {
-//   const receipt = await web3.eth.sendTransaction({
-//     to: contract._address,
-//     ...Object.assign(getContractDefaults(), opts),
-//   });
-//   return Object.assign(receipt, { events: receipt.logs });
-// }
+async function sendFallback(contract, sender, value) {
+  return sender.sendTransaction({
+    to: contract.address,
+    value,
+  });
+}
 
 module.exports = {
   // address,
@@ -177,6 +176,6 @@ module.exports = {
   // setTime,
 
   // both,
-  // sendFallback,
+  sendFallback,
   UInt256Max,
 };

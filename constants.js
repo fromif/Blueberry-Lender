@@ -38,6 +38,14 @@ const CONTRACT_NAMES = {
   MOCK_LIQUIDITY_MINING: "MockLiquidityMining",
   EVIL_ACCOUNT: "EvilAccount",
   EVIL_ACCOUNT2: "EvilAccount2",
+  FLASHLOAN_RECEIVER: "FlashloanReceiver",
+  FLASHLOAN_AND_MINT: "FlashloanAndMint",
+  FLASHLOAN_AND_REPAY_BORROW: "FlashloanAndRepayBorrow",
+  FLASHLOAN_TWICE: "FlashloanTwice",
+  FLASHLOAN_RECEIVER_NATIVE: "FlashloanReceiverNative",
+  FLASHLOAN_AND_MINT_NATIVE: "FlashloanAndMintNative",
+  FLASHLOAN_AND_REPAY_BORROW_NATIVE: "FlashloanAndRepayBorrowNative",
+  FLASHLOAN_TWICE_NATIVE: "FlashloanTwiceNative",
 };
 
 module.exports = { CONTRACT_NAMES };
