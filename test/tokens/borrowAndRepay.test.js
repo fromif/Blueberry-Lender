@@ -520,14 +520,18 @@ describe("BToken", function () {
     });
 
     it("returns success from repayBorrowFresh and repays the right amount", async () => {
-      await fastForward(cToken);
-      const beforeAccountBorrowSnap = await borrowSnapshot(cToken, borrower);
-      expect(
-        await repayBorrowBehalf(cToken, payer, borrower, repayAmount)
-      ).toSucceed();
-      const afterAccountBorrowSnap = await borrowSnapshot(cToken, borrower);
-      expect(afterAccountBorrowSnap.principal).toEqualNumber(
-        beforeAccountBorrowSnap.principal.minus(repayAmount)
+      await fastForward(bToken);
+      const beforeAccountBorrowSnap = await borrowSnapshot(
+        bToken,
+        borrower.address
+      );
+      await repayBorrowBehalf(bToken, payer, borrower, repayAmount);
+      const afterAccountBorrowSnap = await borrowSnapshot(
+        bToken,
+        borrower.address
+      );
+      expect(afterAccountBorrowSnap.principal).to.be.equal(
+        beforeAccountBorrowSnap.principal.sub(repayAmount)
       );
     });
   });

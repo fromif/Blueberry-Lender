@@ -11,7 +11,7 @@ import "../BToken.sol";
 import "../Exponential.sol";
 import "../EIP20Interface.sol";
 
-contract PriceOracleProxyIB is PriceOracle, Exponential, Denominations {
+contract PriceOracleProxyBB is PriceOracle, Exponential, Denominations {
     /// @notice Admin address
     address public admin;
 
