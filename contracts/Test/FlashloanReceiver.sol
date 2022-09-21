@@ -12,6 +12,7 @@ contract FlashloanReceiver is ERC3156FlashBorrowerInterface {
 
     uint256 totalBorrows;
     address borrowToken;
+    address payable public owner;
 
     function doFlashloan(
         address bToken,

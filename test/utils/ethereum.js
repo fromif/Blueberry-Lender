@@ -73,26 +73,27 @@ function etherUnsigned(num) {
 //   return ethers.utils.keccak256(values);
 // }
 
-// function unlockedAccounts() {
-//   let provider = web3.currentProvider;
-//   if (provider._providers)
-//     provider = provider._providers.find(
-//       (p) => p._ganacheProvider
-//     )._ganacheProvider;
-//   return provider.manager.state.unlocked_accounts;
-// }
+function unlockedAccounts() {
+  let provider = web3.currentProvider;
+  if (provider._providers)
+    provider = provider._providers.find(
+      (p) => p._ganacheProvider
+    )._ganacheProvider;
+  return provider.manager.state.unlocked_accounts;
+}
 
-// function unlockedAccount(a) {
-//   return unlockedAccounts()[a.toLowerCase()];
-// }
+function unlockedAccount() {
+  return web3.eth.accounts.create();
+  // return unlockedAccounts()[a.toLowerCase()];
+}
 
 // async function mineBlockNumber(blockNumber) {
 //   return rpc({ method: "evm_mineBlockNumber", params: [blockNumber] });
 // }
 
-// async function mineBlock() {
-//   return rpc({ method: "evm_mine" });
-// }
+async function mineBlock() {
+  return rpc({ method: "evm_mine" });
+}
 
 // async function increaseTime(seconds) {
 //   await rpc({ method: "evm_increaseTime", params: [seconds] });
@@ -121,21 +122,21 @@ function etherUnsigned(num) {
 //   return parseInt(num);
 // }
 
-// async function minerStart() {
-//   return rpc({ method: "miner_start" });
-// }
+async function minerStart() {
+  return rpc({ method: "miner_start" });
+}
 
-// async function minerStop() {
-//   return rpc({ method: "miner_stop" });
-// }
+async function minerStop() {
+  return rpc({ method: "miner_stop" });
+}
 
-// async function rpc(request) {
-//   return new Promise((okay, fail) =>
-//     web3.currentProvider.send(request, (err, res) =>
-//       err ? fail(err) : okay(res)
-//     )
-//   );
-// }
+async function rpc(request) {
+  return new Promise((okay, fail) =>
+    web3.currentProvider.send(request, (err, res) =>
+      err ? fail(err) : okay(res)
+    )
+  );
+}
 
 // async function both(contract, method, args = [], opts = {}) {
 //   const reply = await call(contract, method, args, opts);
@@ -161,18 +162,18 @@ module.exports = {
   etherUnsigned,
   // mergeInterface,
   // keccak256,
-  // unlockedAccounts,
-  // unlockedAccount,
+  unlockedAccounts,
+  unlockedAccount,
 
   // advanceBlocks,
   // blockNumber,
   // freezeTime,
   // increaseTime,
-  // mineBlock,
+  mineBlock,
   // mineBlockNumber,
-  // minerStart,
-  // minerStop,
-  // rpc,
+  minerStart,
+  minerStop,
+  rpc,
   // setTime,
 
   // both,

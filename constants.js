@@ -5,6 +5,7 @@ const CONTRACT_NAMES = {
   BOOL_COMPTROLLER: "BoolComptroller",
   ECHO_TYPES_COMPTROLLER: "EchoTypesComptroller",
   COMP_SCENARIO: "CompScenario",
+  COMP: "Comp",
   FALSE_MARKER_METHOD_COMPTROLLER: "FalseMarkerMethodComptroller",
   SIMPLE_PRICE_ORACLE: "SimplePriceOracle",
   UNITROLLER: "Unitroller",
@@ -26,6 +27,7 @@ const CONTRACT_NAMES = {
   BERC20_DELEGATE_HARNESS: "BErc20DelegateHarness",
   BCOLLATERAL_CAP_ERC20_DELEGATE_HARNESS: "BCollateralCapErc20DelegateHarness",
   BCOLLATERAL_CAP_ERC20_DELEGATOR: "BCollateralCapErc20Delegator",
+  BCOLLATERAL_CAP_ERC20_DELEGATE: "BCollateralCapErc20Delegate",
   BCOLLATERAL_CAP_ERC20_NO_INTEREST_DELEGATE_HARNESS:
     "BCollateralCapErc20NoInterestDelegateHarness",
   BWRAPPED_NATIVE_DELEGATE_HARNESS: "BWrappedNativeDelegateHarness",
