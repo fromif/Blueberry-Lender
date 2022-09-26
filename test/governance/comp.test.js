@@ -1,8 +1,12 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const {
+  ethers,
+  testUtils: { block },
+  web3,
+} = require("hardhat");
 const { CONTRACT_NAMES } = require("../../constants");
 const EIP712 = require("../Utils/eip712");
-const { unlockedAccount } = require("../utils/ethereum");
+const { unlockedAccount, minerStop, minerStart } = require("../utils/ethereum");
 
 describe("Comp", () => {
   const name = "Blueberry";
@@ -159,13 +163,16 @@ describe("Comp", () => {
 
     //   await comp.transfer(guy.address, "100"); //give an account a few tokens for readability
     //   expect(await comp.numCheckpoints(a1.address)).to.be.equal(0);
+
     //   await minerStop();
 
     //   let t1 = comp.connect(guy).delegate(a1.address);
     //   let t2 = comp.connect(guy).transfer(a2.address, 10);
-    //   let t3 = comp.connect(guy).transfer(a2.address, 10);
+    //   let t3 = comp.connect(guy).transfer(a2.address, 10, { gas: 1000000 });
 
     //   await minerStart();
+    //   const t = await web3.currentProvider.send("evm_setAutomine", [true]);
+
     //   t1 = await t1;
     //   t2 = await t2;
     //   t3 = await t3;
@@ -208,74 +215,75 @@ describe("Comp", () => {
       expect(await comp.getPriorVotes(a1.address, 0)).to.be.equal(0);
     });
 
-    // it("returns the latest block if >= last checkpoint block", async () => {
-    //   const t1 = await comp.delegate(a1.address);
-    //   // await mineBlock();
-    //   // await mineBlock();
+    it("returns the latest block if >= last checkpoint block", async () => {
+      const t1 = await comp.delegate(a1.address);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
 
-    //   expect(await comp.getPriorVotes(a1.address, t1.blockNumber)).to.be.equal(
-    //     "9000000000000000000000000"
-    //   );
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t1.blockNumber + 1)
-    //   ).to.be.equal("9000000000000000000000000");
-    // });
+      expect(await comp.getPriorVotes(a1.address, t1.blockNumber)).to.be.equal(
+        "9000000000000000000000000"
+      );
+      expect(
+        await comp.getPriorVotes(a1.address, t1.blockNumber + 1)
+      ).to.be.equal("9000000000000000000000000");
+    });
 
-    // it("returns zero if < first checkpoint block", async () => {
-    //   // await mineBlock();
-    //   const t1 = await comp.delegate(a1.address);
-    //   // await mineBlock();
-    //   // await mineBlock();
+    it("returns zero if < first checkpoint block", async () => {
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      const t1 = await comp.delegate(a1.address);
 
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t1.blockNumber - 1)
-    //   ).to.be.equal(0);
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t1.blockNumber + 1)
-    //   ).to.be.equal("9000000000000000000000000");
-    // });
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
 
-    // it("generally returns the voting balance at the appropriate checkpoint", async () => {
-    //   const t1 = await comp.delegate(a1.address);
-    //   // await mineBlock();
-    //   // await mineBlock();
-    //   const t2 = await comp.transfer(a2.address, 10);
-    //   // await mineBlock();
-    //   // await mineBlock();
-    //   const t3 = await comp.transfer(a2.address, 10);
-    //   // await mineBlock();
-    //   // await mineBlock();
-    //   const t4 = await comp.connect(a2).transfer(root.address, 20);
-    //   // await mineBlock();
-    //   // await mineBlock();
+      expect(
+        await comp.getPriorVotes(a1.address, t1.blockNumber - 1)
+      ).to.be.equal(0);
+      expect(
+        await comp.getPriorVotes(a1.address, t1.blockNumber + 1)
+      ).to.be.equal("9000000000000000000000000");
+    });
 
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t1.blockNumber - 1)
-    //   ).to.be.equal(0);
-    //   expect(await comp.getPriorVotes(a1.address, t1.blockNumber)).to.be.equal(
-    //     "9000000000000000000000000"
-    //   );
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t1.blockNumber + 1)
-    //   ).to.be.equal("9000000000000000000000000");
-    //   expect(await comp.getPriorVotes(a1.address, t2.blockNumber)).to.be.equal(
-    //     "8999999999999999999999990"
-    //   );
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t2.blockNumber + 1)
-    //   ).to.be.equal("8999999999999999999999990");
-    //   expect(await comp.getPriorVotes(a1.address, t3.blockNumber)).to.be.equal(
-    //     "8999999999999999999999980"
-    //   );
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t3.blockNumber + 1)
-    //   ).to.be.equal("8999999999999999999999980");
-    //   expect(await comp.getPriorVotes(a1.address, t4.blockNumber)).to.be.equal(
-    //     "9000000000000000000000000"
-    //   );
-    //   expect(
-    //     await comp.getPriorVotes(a1.address, t4.blockNumber + 1)
-    //   ).to.be.equal("9000000000000000000000000");
-    // });
+    it("generally returns the voting balance at the appropriate checkpoint", async () => {
+      const t1 = await comp.delegate(a1.address);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      const t2 = await comp.transfer(a2.address, 10);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      const t3 = await comp.transfer(a2.address, 10);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      const t4 = await comp.connect(a2).transfer(root.address, 20);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+      await hre.network.provider.send("hardhat_mine", ["0x1"]);
+
+      expect(
+        await comp.getPriorVotes(a1.address, t1.blockNumber - 1)
+      ).to.be.equal(0);
+      expect(await comp.getPriorVotes(a1.address, t1.blockNumber)).to.be.equal(
+        "9000000000000000000000000"
+      );
+      expect(
+        await comp.getPriorVotes(a1.address, t1.blockNumber + 1)
+      ).to.be.equal("9000000000000000000000000");
+      expect(await comp.getPriorVotes(a1.address, t2.blockNumber)).to.be.equal(
+        "8999999999999999999999990"
+      );
+      expect(
+        await comp.getPriorVotes(a1.address, t2.blockNumber + 1)
+      ).to.be.equal("8999999999999999999999990");
+      expect(await comp.getPriorVotes(a1.address, t3.blockNumber)).to.be.equal(
+        "8999999999999999999999980"
+      );
+      expect(
+        await comp.getPriorVotes(a1.address, t3.blockNumber + 1)
+      ).to.be.equal("8999999999999999999999980");
+      expect(await comp.getPriorVotes(a1.address, t4.blockNumber)).to.be.equal(
+        "9000000000000000000000000"
+      );
+      expect(
+        await comp.getPriorVotes(a1.address, t4.blockNumber + 1)
+      ).to.be.equal("9000000000000000000000000");
+    });
   });
 });
