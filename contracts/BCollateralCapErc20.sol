@@ -1,6 +1,7 @@
 pragma solidity ^0.5.16;
 
 import "./BToken.sol";
+import "./ComptrollerInterfaceExtension.sol";
 import "./ERC3156FlashLenderInterface.sol";
 import "./ERC3156FlashBorrowerInterface.sol";
 
@@ -30,7 +31,14 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         uint8 decimals_
     ) public {
         // BToken initialize does the bulk of the work
-        super.initialize(comptroller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
+        super.initialize(
+            comptroller_,
+            interestRateModel_,
+            initialExchangeRateMantissa_,
+            name_,
+            symbol_,
+            decimals_
+        );
 
         // Set underlying and sanity check it
         underlying = underlying_;
@@ -67,7 +75,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
     function redeemUnderlying(uint256 redeemAmount) external returns (uint256) {
-        require(redeemUnderlyingInternal(redeemAmount, false) == 0, "redeem underlying failed");
+        require(
+            redeemUnderlyingInternal(redeemAmount, false) == 0,
+            "redeem underlying failed"
+        );
     }
 
     /**
@@ -95,8 +106,15 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @param repayAmount The amount to repay
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
-    function repayBorrowBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
-        (uint256 err, ) = repayBorrowBehalfInternal(borrower, repayAmount, false);
+    function repayBorrowBehalf(address borrower, uint256 repayAmount)
+        external
+        returns (uint256)
+    {
+        (uint256 err, ) = repayBorrowBehalfInternal(
+            borrower,
+            repayAmount,
+            false
+        );
         require(err == 0, "repay behalf failed");
     }
 
@@ -113,7 +131,12 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         uint256 repayAmount,
         BTokenInterface bTokenCollateral
     ) external returns (uint256) {
-        (uint256 err, ) = liquidateBorrowInternal(borrower, repayAmount, bTokenCollateral, false);
+        (uint256 err, ) = liquidateBorrowInternal(
+            borrower,
+            repayAmount,
+            bTokenCollateral,
+            false
+        );
         require(err == 0, "liquidate borrow failed");
     }
 
@@ -123,7 +146,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
     function _addReserves(uint256 addAmount) external returns (uint256) {
-        require(_addReservesInternal(addAmount, false) == 0, "add reserves failed");
+        require(
+            _addReservesInternal(addAmount, false) == 0,
+            "add reserves failed"
+        );
     }
 
     /**
@@ -158,7 +184,8 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         uint256 amount = 0;
         if (
             token == underlying &&
-            ComptrollerInterfaceExtension(address(comptroller)).flashloanAllowed(address(this), address(0), amount, "")
+            ComptrollerInterfaceExtension(address(comptroller))
+                .flashloanAllowed(address(this), address(0), amount, "")
         ) {
             amount = getCashPrior();
         }
@@ -171,10 +198,15 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @param amount amount of token to borrow
      * @return The amount of `token` to be charged for the loan, on top of the returned principal.
      */
-    function flashFee(address token, uint256 amount) external view returns (uint256) {
+    function flashFee(address token, uint256 amount)
+        external
+        view
+        returns (uint256)
+    {
         require(token == underlying, "unsupported currency");
         require(
-            ComptrollerInterfaceExtension(address(comptroller)).flashloanAllowed(address(this), address(0), amount, ""),
+            ComptrollerInterfaceExtension(address(comptroller))
+                .flashloanAllowed(address(this), address(0), amount, ""),
             "flashloan is paused"
         );
         return _flashFee(token, amount);
@@ -198,12 +230,13 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         require(token == underlying, "unsupported currency");
         accrueInterest();
         require(
-            ComptrollerInterfaceExtension(address(comptroller)).flashloanAllowed(
-                address(this),
-                address(receiver),
-                amount,
-                data
-            ),
+            ComptrollerInterfaceExtension(address(comptroller))
+                .flashloanAllowed(
+                    address(this),
+                    address(receiver),
+                    amount,
+                    data
+                ),
             "flashloan is paused"
         );
         uint256 cashOnChainBefore = getCashOnChain();
@@ -221,8 +254,13 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
 
         // 4. execute receiver's callback function
         require(
-            receiver.onFlashLoan(msg.sender, underlying, amount, totalFee, data) ==
-                keccak256("ERC3156FlashBorrowerInterface.onFlashLoan"),
+            receiver.onFlashLoan(
+                msg.sender,
+                underlying,
+                amount,
+                totalFee,
+                data
+            ) == keccak256("ERC3156FlashBorrowerInterface.onFlashLoan"),
             "IERC3156: Callback failed"
         );
 
@@ -232,10 +270,16 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
 
         uint256 cashOnChainAfter = getCashOnChain();
 
-        require(cashOnChainAfter == add_(cashOnChainBefore, totalFee), "inconsistent balance");
+        require(
+            cashOnChainAfter == add_(cashOnChainBefore, totalFee),
+            "inconsistent balance"
+        );
 
         // 6. update reserves and internal cash and totalBorrows
-        uint256 reservesFee = mul_ScalarTruncate(Exp({mantissa: reserveFactorMantissa}), totalFee);
+        uint256 reservesFee = mul_ScalarTruncate(
+            Exp({mantissa: reserveFactorMantissa}),
+            totalFee
+        );
         totalReserves = add_(totalReserves, reservesFee);
         internalCash = add_(cashBefore, totalFee);
         totalBorrows = sub_(totalBorrows, amount);
@@ -250,7 +294,11 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @param amount amount of token to borrow
      * @return The amount of `token` to be charged for the loan, on top of the returned principal.
      */
-    function _flashFee(address token, uint256 amount) internal view returns (uint256) {
+    function _flashFee(address token, uint256 amount)
+        internal
+        view
+        returns (uint256)
+    {
         return div_(mul_(amount, flashFeeBips), 10000);
     }
 
@@ -266,7 +314,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
 
         require(msg.sender == address(comptroller), "comptroller only");
 
-        uint256 amount = sub_(accountTokens[account], accountCollateralTokens[account]);
+        uint256 amount = sub_(
+            accountTokens[account],
+            accountCollateralTokens[account]
+        );
         return increaseUserCollateralInternal(account, amount);
     }
 
@@ -280,9 +331,19 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         initializeAccountCollateralTokens(account);
 
         require(msg.sender == address(comptroller), "comptroller only");
-        require(comptroller.redeemAllowed(address(this), account, accountCollateralTokens[account]) == 0, "rejected");
+        require(
+            comptroller.redeemAllowed(
+                address(this),
+                account,
+                accountCollateralTokens[account]
+            ) == 0,
+            "rejected"
+        );
 
-        decreaseUserCollateralInternal(account, accountCollateralTokens[account]);
+        decreaseUserCollateralInternal(
+            account,
+            accountCollateralTokens[account]
+        );
     }
 
     /*** Safe Token ***/
@@ -321,11 +382,20 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
          * access accountTokens to call this function to check if accountCollateralTokens needed to be initialized.
          */
         if (!isCollateralTokenInit[account]) {
-            if (ComptrollerInterfaceExtension(address(comptroller)).checkMembership(account, BToken(this))) {
+            if (
+                ComptrollerInterfaceExtension(address(comptroller))
+                    .checkMembership(account, BToken(this))
+            ) {
                 accountCollateralTokens[account] = accountTokens[account];
-                totalCollateralTokens = add_(totalCollateralTokens, accountTokens[account]);
+                totalCollateralTokens = add_(
+                    totalCollateralTokens,
+                    accountTokens[account]
+                );
 
-                emit UserCollateralChanged(account, accountCollateralTokens[account]);
+                emit UserCollateralChanged(
+                    account,
+                    accountCollateralTokens[account]
+                );
             }
             isCollateralTokenInit[account] = true;
         }
@@ -348,7 +418,9 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         isNative; // unused
 
         EIP20NonStandardInterface token = EIP20NonStandardInterface(underlying);
-        uint256 balanceBefore = EIP20Interface(underlying).balanceOf(address(this));
+        uint256 balanceBefore = EIP20Interface(underlying).balanceOf(
+            address(this)
+        );
         token.transferFrom(from, address(this), amount);
 
         bool success;
@@ -371,7 +443,9 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         require(success, "transfer failed");
 
         // Calculate the amount that was *actually* transferred
-        uint256 balanceAfter = EIP20Interface(underlying).balanceOf(address(this));
+        uint256 balanceAfter = EIP20Interface(underlying).balanceOf(
+            address(this)
+        );
         uint256 transferredIn = sub_(balanceAfter, balanceBefore);
         internalCash = add_(internalCash, transferredIn);
         return transferredIn;
@@ -423,14 +497,21 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @param account The account address
      * @return The amount of collateral tokens to be consumed
      */
-    function getCollateralTokens(uint256 amountTokens, address account) internal view returns (uint256) {
+    function getCollateralTokens(uint256 amountTokens, address account)
+        internal
+        view
+        returns (uint256)
+    {
         /**
          * For every user, accountTokens must be greater than or equal to accountCollateralTokens.
          * The buffer between the two values will be transferred first.
          * bufferTokens = accountTokens[account] - accountCollateralTokens[account]
          * collateralTokens = tokens - bufferTokens
          */
-        uint256 bufferTokens = sub_(accountTokens[account], accountCollateralTokens[account]);
+        uint256 bufferTokens = sub_(
+            accountTokens[account],
+            accountCollateralTokens[account]
+        );
         uint256 collateralTokens = 0;
         if (amountTokens > bufferTokens) {
             collateralTokens = amountTokens - bufferTokens;
@@ -463,7 +544,15 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
          * Since bufferTokens are not collateralized and can be transferred freely, we only check with comptroller
          * whether collateralized tokens can be transferred.
          */
-        require(comptroller.transferAllowed(address(this), src, dst, collateralTokens) == 0, "rejected");
+        require(
+            comptroller.transferAllowed(
+                address(this),
+                src,
+                dst,
+                collateralTokens
+            ) == 0,
+            "rejected"
+        );
 
         /* Do not allow self-transfers */
         require(src != dst, "bad input");
@@ -480,8 +569,14 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         accountTokens[src] = sub_(accountTokens[src], tokens);
         accountTokens[dst] = add_(accountTokens[dst], tokens);
         if (collateralTokens > 0) {
-            accountCollateralTokens[src] = sub_(accountCollateralTokens[src], collateralTokens);
-            accountCollateralTokens[dst] = add_(accountCollateralTokens[dst], collateralTokens);
+            accountCollateralTokens[src] = sub_(
+                accountCollateralTokens[src],
+                collateralTokens
+            );
+            accountCollateralTokens[dst] = add_(
+                accountCollateralTokens[dst],
+                collateralTokens
+            );
 
             emit UserCollateralChanged(src, accountCollateralTokens[src]);
             emit UserCollateralChanged(dst, accountCollateralTokens[dst]);
@@ -504,7 +599,11 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @notice Get the account's bToken balances
      * @param account The address of the account
      */
-    function getBTokenBalanceInternal(address account) internal view returns (uint256) {
+    function getBTokenBalanceInternal(address account)
+        internal
+        view
+        returns (uint256)
+    {
         if (isCollateralTokenInit[account]) {
             return accountCollateralTokens[account];
         } else {
@@ -521,25 +620,43 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @param amount The amount of collateral user wants to increase
      * @return The actual increased amount of collateral
      */
-    function increaseUserCollateralInternal(address account, uint256 amount) internal returns (uint256) {
+    function increaseUserCollateralInternal(address account, uint256 amount)
+        internal
+        returns (uint256)
+    {
         uint256 totalCollateralTokensNew = add_(totalCollateralTokens, amount);
-        if (collateralCap == 0 || (collateralCap != 0 && totalCollateralTokensNew <= collateralCap)) {
+        if (
+            collateralCap == 0 ||
+            (collateralCap != 0 && totalCollateralTokensNew <= collateralCap)
+        ) {
             // 1. If collateral cap is not set,
             // 2. If collateral cap is set but has enough space for this user,
             // give all the user needs.
             totalCollateralTokens = totalCollateralTokensNew;
-            accountCollateralTokens[account] = add_(accountCollateralTokens[account], amount);
+            accountCollateralTokens[account] = add_(
+                accountCollateralTokens[account],
+                amount
+            );
 
-            emit UserCollateralChanged(account, accountCollateralTokens[account]);
+            emit UserCollateralChanged(
+                account,
+                accountCollateralTokens[account]
+            );
             return amount;
         } else if (collateralCap > totalCollateralTokens) {
             // If the collateral cap is set but the remaining cap is not enough for this user,
             // give the remaining parts to the user.
             uint256 gap = sub_(collateralCap, totalCollateralTokens);
             totalCollateralTokens = add_(totalCollateralTokens, gap);
-            accountCollateralTokens[account] = add_(accountCollateralTokens[account], gap);
+            accountCollateralTokens[account] = add_(
+                accountCollateralTokens[account],
+                gap
+            );
 
-            emit UserCollateralChanged(account, accountCollateralTokens[account]);
+            emit UserCollateralChanged(
+                account,
+                accountCollateralTokens[account]
+            );
             return gap;
         }
         return 0;
@@ -550,7 +667,9 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
      * @param account The address of the account
      * @param amount The amount of collateral user wants to decrease
      */
-    function decreaseUserCollateralInternal(address account, uint256 amount) internal {
+    function decreaseUserCollateralInternal(address account, uint256 amount)
+        internal
+    {
         /*
          * Return if amount is zero.
          * Put behind `redeemAllowed` for accruing potential COMP rewards.
@@ -560,7 +679,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         }
 
         totalCollateralTokens = sub_(totalCollateralTokens, amount);
-        accountCollateralTokens[account] = sub_(accountCollateralTokens[account], amount);
+        accountCollateralTokens[account] = sub_(
+            accountCollateralTokens[account],
+            amount
+        );
 
         emit UserCollateralChanged(account, accountCollateralTokens[account]);
     }
@@ -588,7 +710,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         initializeAccountCollateralTokens(minter);
 
         /* Fail if mint not allowed */
-        require(comptroller.mintAllowed(address(this), minter, mintAmount) == 0, "rejected");
+        require(
+            comptroller.mintAllowed(address(this), minter, mintAmount) == 0,
+            "rejected"
+        );
 
         /*
          * Return if mintAmount is zero.
@@ -623,7 +748,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
          * We get the current exchange rate and calculate the number of bTokens to be minted:
          *  mintTokens = actualMintAmount / exchangeRate
          */
-        vars.mintTokens = div_ScalarByExpTruncate(vars.actualMintAmount, Exp({mantissa: vars.exchangeRateMantissa}));
+        vars.mintTokens = div_ScalarByExpTruncate(
+            vars.actualMintAmount,
+            Exp({mantissa: vars.exchangeRateMantissa})
+        );
 
         /*
          * We calculate the new total supply of bTokens and minter token balance, checking for overflow:
@@ -636,7 +764,12 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         /*
          * We only allocate collateral tokens if the minter has entered the market.
          */
-        if (ComptrollerInterfaceExtension(address(comptroller)).checkMembership(minter, BToken(this))) {
+        if (
+            ComptrollerInterfaceExtension(address(comptroller)).checkMembership(
+                minter,
+                BToken(this)
+            )
+        ) {
             increaseUserCollateralInternal(minter, vars.mintTokens);
         }
 
@@ -645,7 +778,12 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         emit Transfer(address(this), minter, vars.mintTokens);
 
         /* We call the defense hook */
-        comptroller.mintVerify(address(this), minter, vars.actualMintAmount, vars.mintTokens);
+        comptroller.mintVerify(
+            address(this),
+            minter,
+            vars.actualMintAmount,
+            vars.mintTokens
+        );
 
         return (uint256(Error.NO_ERROR), vars.actualMintAmount);
     }
@@ -690,21 +828,37 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
              *  redeemAmount = redeemTokensIn x exchangeRateCurrent
              */
             vars.redeemTokens = redeemTokensIn;
-            vars.redeemAmount = mul_ScalarTruncate(Exp({mantissa: vars.exchangeRateMantissa}), redeemTokensIn);
+            vars.redeemAmount = mul_ScalarTruncate(
+                Exp({mantissa: vars.exchangeRateMantissa}),
+                redeemTokensIn
+            );
         } else {
             /*
              * We get the current exchange rate and calculate the amount to be redeemed:
              *  redeemTokens = redeemAmountIn / exchangeRate
              *  redeemAmount = redeemAmountIn
              */
-            vars.redeemTokens = div_ScalarByExpTruncate(redeemAmountIn, Exp({mantissa: vars.exchangeRateMantissa}));
+            vars.redeemTokens = div_ScalarByExpTruncate(
+                redeemAmountIn,
+                Exp({mantissa: vars.exchangeRateMantissa})
+            );
             vars.redeemAmount = redeemAmountIn;
         }
 
-        vars.collateralTokens = getCollateralTokens(vars.redeemTokens, redeemer);
+        vars.collateralTokens = getCollateralTokens(
+            vars.redeemTokens,
+            redeemer
+        );
 
         /* redeemAllowed might check more than user's liquidity. */
-        require(comptroller.redeemAllowed(address(this), redeemer, vars.collateralTokens) == 0, "rejected");
+        require(
+            comptroller.redeemAllowed(
+                address(this),
+                redeemer,
+                vars.collateralTokens
+            ) == 0,
+            "rejected"
+        );
 
         /* Verify market's block number equals current block number */
         require(accrualBlockNumber == getBlockNumber(), "market is stale");
@@ -722,7 +876,10 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
          *  accountTokensNew = accountTokens[redeemer] - redeemTokens
          */
         totalSupply = sub_(totalSupply, vars.redeemTokens);
-        accountTokens[redeemer] = sub_(accountTokens[redeemer], vars.redeemTokens);
+        accountTokens[redeemer] = sub_(
+            accountTokens[redeemer],
+            vars.redeemTokens
+        );
 
         /*
          * We only deallocate collateral tokens if the redeemer needs to redeem them.
@@ -742,7 +899,12 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
         emit Redeem(redeemer, vars.redeemAmount, vars.redeemTokens);
 
         /* We call the defense hook */
-        comptroller.redeemVerify(address(this), redeemer, vars.redeemAmount, vars.redeemTokens);
+        comptroller.redeemVerify(
+            address(this),
+            redeemer,
+            vars.redeemAmount,
+            vars.redeemTokens
+        );
 
         return uint256(Error.NO_ERROR);
     }
@@ -771,7 +933,13 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
 
         /* Fail if seize not allowed */
         require(
-            comptroller.seizeAllowed(address(this), seizerToken, liquidator, borrower, collateralTokens) == 0,
+            comptroller.seizeAllowed(
+                address(this),
+                seizerToken,
+                liquidator,
+                borrower,
+                collateralTokens
+            ) == 0,
             "rejected"
         );
 
@@ -786,20 +954,41 @@ contract BCollateralCapErc20 is BToken, BCollateralCapErc20Interface {
          *  accountCollateralTokens[liquidator] = accountCollateralTokens[liquidator] + collateralTokens
          */
         accountTokens[borrower] = sub_(accountTokens[borrower], seizeTokens);
-        accountTokens[liquidator] = add_(accountTokens[liquidator], seizeTokens);
+        accountTokens[liquidator] = add_(
+            accountTokens[liquidator],
+            seizeTokens
+        );
         if (collateralTokens > 0) {
-            accountCollateralTokens[borrower] = sub_(accountCollateralTokens[borrower], collateralTokens);
-            accountCollateralTokens[liquidator] = add_(accountCollateralTokens[liquidator], collateralTokens);
+            accountCollateralTokens[borrower] = sub_(
+                accountCollateralTokens[borrower],
+                collateralTokens
+            );
+            accountCollateralTokens[liquidator] = add_(
+                accountCollateralTokens[liquidator],
+                collateralTokens
+            );
 
-            emit UserCollateralChanged(borrower, accountCollateralTokens[borrower]);
-            emit UserCollateralChanged(liquidator, accountCollateralTokens[liquidator]);
+            emit UserCollateralChanged(
+                borrower,
+                accountCollateralTokens[borrower]
+            );
+            emit UserCollateralChanged(
+                liquidator,
+                accountCollateralTokens[liquidator]
+            );
         }
 
         /* Emit a Transfer event */
         emit Transfer(borrower, liquidator, seizeTokens);
 
         /* We call the defense hook */
-        comptroller.seizeVerify(address(this), seizerToken, liquidator, borrower, seizeTokens);
+        comptroller.seizeVerify(
+            address(this),
+            seizerToken,
+            liquidator,
+            borrower,
+            seizeTokens
+        );
 
         return uint256(Error.NO_ERROR);
     }

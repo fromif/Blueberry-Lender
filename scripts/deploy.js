@@ -98,23 +98,23 @@ async function deployBToken(
   bDecimal,
   bTokenAdmin
 ) {
-  // const underlyingToken = await ethers.getContractAt(
-  //   "EIP20Interface",
-  //   underlying
-  // );
-  // const underlyingTokenDecimal = await underlyingToken.decimals();
+  const underlyingToken = await ethers.getContractAt(
+    "EIP20Interface",
+    underlying
+  );
+  const underlyingTokenDecimal = await underlyingToken.decimals();
 
   const initialExchangeRate = parseUnits(
     "0.01",
-    18
+    18 + underlyingTokenDecimal - bDecimal
   );
 
-  // const BCollateralCapErc20Delegate = await ethers.getContractFactory(
-  //   "BCollateralCapErc20Delegate"
-  // );
-  // const bCollateralCapErc20Delegate =
-  //   await BCollateralCapErc20Delegate.deploy();
-  // await bCollateralCapErc20Delegate.deployed();
+  const BCollateralCapErc20Delegate = await ethers.getContractFactory(
+    "BCollateralCapErc20Delegate"
+  );
+  const bCollateralCapErc20Delegate =
+    await BCollateralCapErc20Delegate.deploy();
+  await bCollateralCapErc20Delegate.deployed();
   console.log(
     underlying,
     comptroller,
@@ -124,25 +124,25 @@ async function deployBToken(
     bSymbol,
     bDecimal,
     bTokenAdmin,
-    "0xC8fC98Ef2C5C231A822E2882AC51A0900E1FA68A",
+    bCollateralCapErc20Delegate.address,
     "0x00"
   );
-  // const BErc20Delegator = await ethers.getContractFactory("BErc20Delegator");
-  // const bErc20Delegator = await BErc20Delegator.deploy(
-  //   underlying,
-  //   comptroller,
-  //   interestRateModel,
-  //   initialExchangeRate,
-  //   bName,
-  //   bSymbol,
-  //   bDecimal,
-  //   bTokenAdmin,
-  //   bCollateralCapErc20Delegate.address,
-  //   "0x00"
-  // );
-  // await bErc20Delegator.deployed();
+  const BErc20Delegator = await ethers.getContractFactory("BErc20Delegator");
+  const bErc20Delegator = await BErc20Delegator.deploy(
+    underlying,
+    comptroller,
+    interestRateModel,
+    initialExchangeRate,
+    bName,
+    bSymbol,
+    bDecimal,
+    bTokenAdmin,
+    bCollateralCapErc20Delegate.address,
+    "0x00"
+  );
+  await bErc20Delegator.deployed();
 
-  // return bErc20Delegator;
+  return bErc20Delegator;
 }
 
 async function deployWrapped(
@@ -155,7 +155,7 @@ async function deployWrapped(
   bTokenAdmin
 ) {
   const underlyingToken = await ethers.getContractAt(
-    "EIP20Interfface",
+    "EIP20Interface",
     underlying
   );
   const underlyingTokenDecimal = await underlyingToken.decimals();
@@ -171,6 +171,18 @@ async function deployWrapped(
   const bWrappedNativeDelegate = await BWrappedNativeDelegate.deploy();
   await bWrappedNativeDelegate.deployed();
 
+  console.log(
+    underlying,
+    comptroller,
+    interestRateModel,
+    initialExchangeRate.toString(),
+    bName,
+    bSymbol,
+    bDecimal,
+    bTokenAdmin,
+    bWrappedNativeDelegate.address,
+    "0x00"
+  );
   const BWrappedNativeDelegator = await ethers.getContractFactory(
     "BWrappedNativeDelegator"
   );
@@ -235,29 +247,100 @@ async function main() {
   //   kink2,
   //   roof
   // );
-  const usdc = "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
-  const bUSDC = await deployBToken(
-    usdc,
-    "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
-    "0xb734Bd2Ab32941c1B39c445aAB9738585e05fb6E", // IRM.address,
-    "Blueberry USDC",
-    "bUSDC",
-    6,
-    "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
-  );
+  // const usdc = "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
+  // const bUSDC = await deployBToken(
+  //   usdc,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   "0xb734Bd2Ab32941c1B39c445aAB9738585e05fb6E", // IRM.address,
+  //   "Blueberry USDC",
+  //   "bUSDC",
+  //   6,
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  // );
 
   // console.log("bUSDC deployed at: ", bUSDC.address);
 
-  // // Deploy WETH
+  // const dai = "0x73967c6a0904aA032C103b4104747E88c566B1A2";
+  // const bDai = await deployBToken(
+  //   dai,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   "0xb734Bd2Ab32941c1B39c445aAB9738585e05fb6E", // IRM.address,
+  //   "Blueberry DAI",
+  //   "bDAI",
+  //   18,
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  // );
+
+  // console.log("bDAI deployed at: ", bDai.address);
+
+  // const usdt = "0xe802376580c10fE23F027e1E19Ed9D54d4C9311e";
+  // const bUSDT = await deployBToken(
+  //   usdt,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   "0xb734Bd2Ab32941c1B39c445aAB9738585e05fb6E", // IRM.address,
+  //   "Blueberry USDT",
+  //   "bUSDT",
+  //   6,
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  // );
+
+  // console.log("bUSDT deployed at: ", bUSDT.address);
+
+  // Deploy WETH
+  // let baseRate = 0;
+  // let multiplier = parseEther("0.125");
+  // let jump = parseEther("2.5");
+  // let kink1 = parseEther("0.8");
+  // let kink2 = parseEther("0.9");
+  // let roof = parseEther("2");
+  // const IRM = await deployInterestRateModel(
+  //   baseRate,
+  //   multiplier,
+  //   jump,
+  //   kink1,
+  //   kink2,
+  //   roof
+  // );
+  // const weth = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6";
   // const bWETH = await deployWrapped(
   //   weth,
-  //   comptroller.address,
-  //   IRMs.major.address,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   "0x2DCefD09661801966d12E9C02e9827401Fa307eb", // IRM.address,
   //   "Blueberry Wrapped Ether",
   //   "bWETH",
   //   18,
-  //   bTokenAdmin.address
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
   // );
+
+  // console.log("bWETH deployed at: ", bWETH.address);
+
+  // Deploy WBTC
+  let baseRate = 0;
+  let multiplier = parseEther("0.175");
+  let jump = parseEther("2");
+  let kink1 = parseEther("0.8");
+  let kink2 = parseEther("0.9");
+  let roof = parseEther("2");
+  const IRM = await deployInterestRateModel(
+    baseRate,
+    multiplier,
+    jump,
+    kink1,
+    kink2,
+    roof
+  );
+  const wBTC = "0xC04B0d3107736C32e19F1c62b2aF67BE61d63a05";
+  const bBTC = await deployBToken(
+    wBTC,
+    "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+    IRM.address,
+    "Blueberry Wrapped Bitcoin",
+    "bBTC",
+    8,
+    "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  );
+
+  console.log("bBTC deployed at: ", bBTC.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

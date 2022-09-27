@@ -1,15 +1,14 @@
 pragma solidity ^0.5.16;
 
-import "./BToken.sol";
-import "./ComptrollerStorage.sol";
-
 contract ComptrollerInterface {
     /// @notice Indicator that this is a Comptroller contract (for inspection)
     bool public constant isComptroller = true;
 
     /*** Assets You Are In ***/
 
-    function enterMarkets(address[] calldata bTokens) external returns (uint256[] memory);
+    function enterMarkets(address[] calldata bTokens)
+        external
+        returns (uint256[] memory);
 
     function exitMarket(address bToken) external returns (uint256);
 
@@ -122,28 +121,4 @@ contract ComptrollerInterface {
         address bTokenCollateral,
         uint256 repayAmount
     ) external view returns (uint256, uint256);
-}
-
-interface ComptrollerInterfaceExtension {
-    function checkMembership(address account, BToken bToken) external view returns (bool);
-
-    function updateBTokenVersion(address bToken, ComptrollerV1Storage.Version version) external;
-
-    function flashloanAllowed(
-        address bToken,
-        address receiver,
-        uint256 amount,
-        bytes calldata params
-    ) external view returns (bool);
-
-    function getAccountLiquidity(address account)
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        );
-
-    function supplyCaps(address market) external view returns (uint256);
 }

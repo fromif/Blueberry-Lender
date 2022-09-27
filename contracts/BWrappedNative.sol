@@ -1,6 +1,7 @@
 pragma solidity ^0.5.16;
 
 import "./BToken.sol";
+import "./ComptrollerInterfaceExtension.sol";
 import "./ERC3156FlashBorrowerInterface.sol";
 import "./ERC3156FlashLenderInterface.sol";
 
