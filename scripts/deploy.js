@@ -315,11 +315,95 @@ async function main() {
   // console.log("bWETH deployed at: ", bWETH.address);
 
   // Deploy WBTC
+  // let baseRate = 0;
+  // let multiplier = parseEther("0.175");
+  // let jump = parseEther("2");
+  // let kink1 = parseEther("0.8");
+  // let kink2 = parseEther("0.9");
+  // let roof = parseEther("2");
+  // const IRM = await deployInterestRateModel(
+  //   baseRate,
+  //   multiplier,
+  //   jump,
+  //   kink1,
+  //   kink2,
+  //   roof
+  // );
+  // const wBTC = "0xC04B0d3107736C32e19F1c62b2aF67BE61d63a05";
+  // const bBTC = await deployBToken(
+  //   wBTC,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   IRM.address,
+  //   "Blueberry Wrapped Bitcoin",
+  //   "bBTC",
+  //   8,
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  // );
+
+  // console.log("bBTC deployed at: ", bBTC.address);
+
+  // // Deploy ICHI BaseToken
+  // let baseRate = 0;
+  // let multiplier = parseEther("0.2");
+  // let jump = parseEther("5");
+  // let kink1 = parseEther("0.7");
+  // let kink2 = parseEther("0.8");
+  // let roof = parseEther("2");
+  // const IRM = await deployInterestRateModel(
+  //   baseRate,
+  //   multiplier,
+  //   jump,
+  //   kink1,
+  //   kink2,
+  //   roof
+  // );
+  // const ichiBaseToken = "0xb55242C8517CebfB150A615F68C38bd04854A5dE";
+  // const bBaseToken = await deployBToken(
+  //   ichiBaseToken,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   IRM.address,
+  //   "Blueberry BaseToken",
+  //   "bBTK",
+  //   18,
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  // );
+
+  // console.log("bBaseToken deployed at: ", bBaseToken.address);
+
+  // Deploy ICHI SupplyToken
+  // let baseRate = 0;
+  // let multiplier = parseEther("0.2");
+  // let jump = parseEther("5");
+  // let kink1 = parseEther("0.7");
+  // let kink2 = parseEther("0.8");
+  // let roof = parseEther("2");
+  // const IRM = await deployInterestRateModel(
+  //   baseRate,
+  //   multiplier,
+  //   jump,
+  //   kink1,
+  //   kink2,
+  //   roof
+  // );
+  // const ichiSupplyToken = "0xEdA174a7DcC44CC391C21cCFd16715eE660Bd35f";
+  // const bSupplyToken = await deployBToken(
+  //   ichiSupplyToken,
+  //   "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
+  //   IRM.address,
+  //   "Blueberry Token",
+  //   "bBTK",
+  //   18,
+  //   "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
+  // );
+
+  // console.log("bSupplyToken deployed at: ", bSupplyToken.address);
+
+  // Deploy ICHI Token
   let baseRate = 0;
-  let multiplier = parseEther("0.175");
-  let jump = parseEther("2");
-  let kink1 = parseEther("0.8");
-  let kink2 = parseEther("0.9");
+  let multiplier = parseEther("0.2");
+  let jump = parseEther("5");
+  let kink1 = parseEther("0.7");
+  let kink2 = parseEther("0.8");
   let roof = parseEther("2");
   const IRM = await deployInterestRateModel(
     baseRate,
@@ -329,18 +413,18 @@ async function main() {
     kink2,
     roof
   );
-  const wBTC = "0xC04B0d3107736C32e19F1c62b2aF67BE61d63a05";
-  const bBTC = await deployBToken(
-    wBTC,
+  const ichiToken = "0x9667Ead021746730F064b2F4f650d50A957e41F8";
+  const bICHIToken = await deployBToken(
+    ichiToken,
     "0x71Bba48b7DcEbC3E612DBC781FA5cEE5D3E3E566", // comptroller.address,
     IRM.address,
-    "Blueberry Wrapped Bitcoin",
-    "bBTC",
-    8,
+    "Blueberry ICHI",
+    "bICHI",
+    18,
     "0xa4C4D2E013281E3De5378AAa8edeC51CC4a59E5A" // bTokenAdmin.address
   );
 
-  console.log("bBTC deployed at: ", bBTC.address);
+  console.log("bICHIToken deployed at: ", bICHIToken.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
